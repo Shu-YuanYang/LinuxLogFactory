@@ -2,11 +2,21 @@
 //
 
 #include <iostream>
+#include "FileLock.h"
 
-int main()
+#include "nlohmann/json.hpp"
+
+int main(int argc, char *argv[])
 {
-    std::cout << "Hello World!\n";
-    std::cout << "Test Again!";
+	//std::cout << argv[1] << std::endl;
+	std::string file_content = std::read_file_with_lock(argv[1]);
+	//std::write_file_with_lock(argv[1]);
+	//std::cout << file_content;
+
+	nlohmann::json Doc{nlohmann::json::parse(file_content)};
+	std::cout << Doc[0] << std::endl;
+
+	return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
