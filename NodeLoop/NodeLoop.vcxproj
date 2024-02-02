@@ -129,6 +129,13 @@
   <ItemGroup>
     <ClCompile Include="NodeLoop.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="NodeLoop.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="nlohmann\json.hpp" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
