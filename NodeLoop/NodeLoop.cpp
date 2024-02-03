@@ -4,7 +4,8 @@
 #include <iostream>
 #include <thread>
 #include "nlohmann/json.hpp";
-
+#include <string>
+#include <algorithm>
 
 
 void scheduler_run(int ID) {
@@ -24,10 +25,11 @@ void scheduler_run(int ID) {
 int main(int argc, char* argv[])
 {
     //std::cout << "Hello World Main Thread!\n";
-
-    nlohmann::json Doc{ nlohmann::json::parse(argv[1])};
+    std::string arg_str(argv[1]);
+    std::replace(arg_str.begin(), arg_str.end(), '\'', '"');
+    nlohmann::json Doc{ nlohmann::json::parse(arg_str)};
     
-    std::cout << Doc[0] << std::endl;
+    std::cout << Doc << std::endl;
     //std::thread scheduler_th(scheduler_run, 5);
     //scheduler_th.join();
 
