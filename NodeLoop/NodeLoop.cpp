@@ -3,23 +3,13 @@
 
 #include <iostream>
 #include <thread>
-#include "nlohmann/json.hpp";
-#include <string>
+#include "nlohmann/json.hpp"
+//#include <string>
+#include "COrder.h"
 #include <algorithm>
 
 
-void scheduler_run(int ID) {
-    long count = 0;
-    long end = 10000000000000000;
-    while (true) {
-        
-        ++count;
-        if (count == end) {
-            count = 0;
-            std::cout << "Check!" << std::endl;
-        }
-    }
-}
+
 
 
 int main(int argc, char* argv[])
@@ -29,6 +19,19 @@ int main(int argc, char* argv[])
     std::replace(arg_str.begin(), arg_str.end(), '\'', '"');
     nlohmann::json Doc{ nlohmann::json::parse(arg_str)};
     
+    LinuxLogFactory::SOrder sample_order{
+        std::vector<std::string>{"s1", "s2", "s3"}, 
+        std::chrono::system_clock::now(),
+        "ssoiweiewef",
+        1
+    };
+
+    nlohmann::json j = sample_order;
+    std::cout << j << std::endl;
+    LinuxLogFactory::SOrder confirm_order(j.template get<LinuxLogFactory::SOrder>());
+
+    long long time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(confirm_order.deadline.time_since_epoch()).count();
+
     std::cout << Doc << std::endl;
     //std::thread scheduler_th(scheduler_run, 5);
     //scheduler_th.join();

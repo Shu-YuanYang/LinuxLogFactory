@@ -127,12 +127,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="COrder.cpp" />
     <ClCompile Include="NodeLoop.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NodeLoop.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="COrder.h" />
     <ClInclude Include="nlohmann\json.hpp" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
