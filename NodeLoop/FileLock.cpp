@@ -102,7 +102,7 @@ namespace std {
 
         // 2. transform content:
         std::string new_content = transform_content(file_content);
-        std::cout << new_content << std::endl;
+        //std::cout << new_content << std::endl;
 
         // 3. Write new content:
         lseek(fd, 0, SEEK_SET);

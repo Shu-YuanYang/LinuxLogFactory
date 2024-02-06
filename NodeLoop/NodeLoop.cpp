@@ -69,7 +69,8 @@ int main(int argc, char* argv[])
 
     if (schedules.schedules.begin() == schedules.schedules.end()) {
         long long completion_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        std::cout << "{\"completed_task\": null, \"completed_time\": " << completion_time << ", \"next\": false}" << std::endl;
+        std::cout << "{\"order_id\": null, \"completed_task\": null, \"completed_time\": " << completion_time << ", \"next\": false}" << std::endl;
+        return 0;
     }
 
     LinuxLogFactory::STaskSchedule& first_task = schedules.schedules.front();
@@ -91,6 +92,12 @@ int main(int argc, char* argv[])
         //std::cout << j << std::endl;
         return nlohmann::to_string(j);
     });
+
+    long long completion_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    std::cout << "{\"order_id\": " << first_task.order_id 
+        << ",\"completed_task\": " << first_task.task 
+        << ", \"completed_time\": " << completion_time 
+        << ", \"next\": true}" << std::endl;
 
     /*
     N1SchedulesDoc = nlohmann::json::parse(N1schedules);
