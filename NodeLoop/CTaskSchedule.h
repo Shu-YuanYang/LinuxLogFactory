@@ -3,7 +3,7 @@
 #include <string>
 #include <chrono>
 #include "nlohmann/json.hpp"
-#include <list>
+#include <vector>
 
 
 namespace LinuxLogFactory {
@@ -27,7 +27,7 @@ namespace LinuxLogFactory {
 
 	struct STaskSchedules {
 	public:
-		std::list<STaskSchedule> schedules;
+		std::vector<STaskSchedule> schedules;
 	};
 
 

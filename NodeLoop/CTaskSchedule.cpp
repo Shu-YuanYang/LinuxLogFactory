@@ -43,8 +43,9 @@ namespace LinuxLogFactory {
     }
 
     void from_json(const nlohmann::json& j, STaskSchedules& schedules) {
-        for (auto& elem : j["schedules"])
-            schedules.schedules.push_back(elem.template get<STaskSchedule>());
+        schedules.schedules = j["schedules"].get<std::vector<STaskSchedule> >();
+        //for (auto& elem : j["schedules"])
+        //    schedules.schedules.push_back(elem.template get<STaskSchedule>());
         //j["schedules"]
         //j.at("schedules").get_to(schedules.schedules);
     }
