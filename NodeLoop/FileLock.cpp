@@ -11,41 +11,104 @@ namespace std {
  
 
 	void write_file_with_lock(const char* filename) {
-        	int fd;
-        	flock lock, savelock;
+        int fd;
+        flock lock, savelock;
 
-        	fd = open(filename, O_RDWR);
+        fd = open(filename, O_RDWR);
 
-        	//std::cout << F_WRLCK << " " << F_RDLCK << std::endl;
-        	lock.l_type = F_WRLCK; // test for any lock on any part of the file
-        	lock.l_start = 0;
-        	lock.l_whence = SEEK_SET;
-        	lock.l_len = 0;
-        	savelock = lock;
-        	fcntl(fd, F_GETLK, &lock); // overwrites lock structure with preventors
+        //std::cout << F_WRLCK << " " << F_RDLCK << std::endl;
+        lock.l_type = F_WRLCK; // test for any lock on any part of the file
+        lock.l_start = 0;
+        lock.l_whence = SEEK_SET;
+        lock.l_len = 0;
+        savelock = lock;
+        fcntl(fd, F_GETLK, &lock); // overwrites lock structure with preventors
 
-        	//std::cout << lock.l_type << std::endl;
-        	if (lock.l_type == F_WRLCK) {
-                	std::string err_message = "Process " + std::to_string(lock.l_pid) + " has a write lock already!";
-			std::cout << err_message << std::endl;
-                	//close(fd);
-			throw err_message;
-			//exit(1);
-        	}
+        //std::cout << lock.l_type << std::endl;
+        if (lock.l_type == F_WRLCK) {
+                std::string err_message = "Process " + std::to_string(lock.l_pid) + " has a write lock already!";
+		std::cout << err_message << std::endl;
+                //close(fd);
+		throw err_message;
+		//exit(1);
+        }
 
-        	if (lock.l_type == F_RDLCK) {
-			std::string err_message = "Process " + std::to_string(lock.l_pid) + " has a read lock already!";
-                	std::cout << err_message << std::endl;
-                	//close(fd);
-			throw err_message;
-			//exit(1);
-        	}
+        if (lock.l_type == F_RDLCK) {
+		std::string err_message = "Process " + std::to_string(lock.l_pid) + " has a read lock already!";
+                std::cout << err_message << std::endl;
+                //close(fd);
+		throw err_message;
+		//exit(1);
+        }
 
-        	fcntl(fd, F_SETLK, &savelock);
-       		//std::cout << savelock.l_type << std::endl;
+        fcntl(fd, F_SETLK, &savelock);
+       	//std::cout << savelock.l_type << std::endl;
 
 		close(fd);
 	}
+
+    void read_and_write_file_with_lock(const char* filename, std::function<std::string(const std::string&)> transform_content) {
+        
+        int fd;
+        flock lock, savelock;
+
+        fd = open(filename, O_RDWR);
+
+        //std::cout << F_WRLCK << " " << F_RDLCK << std::endl;
+        lock.l_type = F_WRLCK; // test for any lock on any part of the file
+        lock.l_start = 0;
+        lock.l_whence = SEEK_SET;
+        lock.l_len = 0;
+        savelock = lock;
+        fcntl(fd, F_GETLK, &lock); // overwrites lock structure with preventors
+
+        //std::cout << lock.l_type << std::endl;
+        if (lock.l_type == F_WRLCK) {
+            std::string err_message = "Process " + std::to_string(lock.l_pid) + " has a write lock already!";
+            std::cout << err_message << std::endl;
+            //close(fd);
+            throw err_message;
+            //exit(1);
+        }
+
+        if (lock.l_type == F_RDLCK) {
+            std::string err_message = "Process " + std::to_string(lock.l_pid) + " has a read lock already!";
+            std::cout << err_message << std::endl;
+            //close(fd);
+            throw err_message;
+            //exit(1);
+        }
+
+        fcntl(fd, F_SETLK, &savelock);
+        //std::cout << savelock.l_type << std::endl;
+
+        // 1. Read content:
+        std::string file_content;
+        char c;
+        int read_flag = -1;
+
+        while (read_flag != 0) {
+            read_flag = read(fd, &c, 1);
+            if (read_flag == -1) {
+                std::string err_message = "Read error from file " + std::string(filename);
+                std::cout << err_message << std::endl;
+                // close(fd);
+                throw err_message;
+            }
+            if (read_flag != 0)
+                file_content += c;
+        }
+        std::cout << file_content << std::endl;
+
+        // 2. transform content:
+        std::string new_content = transform_content(file_content);
+        std::cout << new_content << std::endl;
+
+        // 3. Write new content:
+
+        close(fd);
+
+    }
 	
 
 	std::string read_file_with_lock(const char* filename) {

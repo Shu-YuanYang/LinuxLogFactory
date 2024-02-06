@@ -15,6 +15,10 @@
 
 
 
+
+
+
+
 int main(int argc, char* argv[])
 {
     //N1schedules.json
@@ -73,8 +77,22 @@ int main(int argc, char* argv[])
     usleep(first_task.execution_time * 1000);
     // execute complete
 
-    std::cout << "Hello?" << std::endl;
     N1schedules = std::read_file_with_lock("N1schedules.json");
+
+    std::read_and_write_file_with_lock("N1schedules.json", [&first_task](const std::string& content) {
+        nlohmann::json SchedulesDoc = nlohmann::json::parse(content);
+        LinuxLogFactory::STaskSchedules new_schedules = SchedulesDoc.template get<LinuxLogFactory::STaskSchedules>();
+
+        std::vector<LinuxLogFactory::STaskSchedule>::iterator iter = new_schedules.schedules.begin();
+        while (iter != new_schedules.schedules.end() && iter->order_id != first_task.order_id) ++iter;
+        new_schedules.schedules.erase(iter);
+
+        nlohmann::json j = new_schedules;
+        //std::cout << j << std::endl;
+        return nlohmann::to_string(j);
+    });
+
+    /*
     N1SchedulesDoc = nlohmann::json::parse(N1schedules);
     LinuxLogFactory::STaskSchedules new_schedules = N1SchedulesDoc.template get<LinuxLogFactory::STaskSchedules>();
 
@@ -84,6 +102,8 @@ int main(int argc, char* argv[])
 
     nlohmann::json j = new_schedules;
     std::cout << j << std::endl;
+    */
+    
 
     return 0;
 }
