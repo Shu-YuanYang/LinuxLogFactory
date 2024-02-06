@@ -76,7 +76,14 @@ int main(int argc, char* argv[])
     std::cout << "Hello?" << std::endl;
     N1schedules = std::read_file_with_lock("N1schedules.json");
     N1SchedulesDoc = nlohmann::json::parse(N1schedules);
-    schedules = N1SchedulesDoc.template get<LinuxLogFactory::STaskSchedules>();
+    LinuxLogFactory::STaskSchedules new_schedules = N1SchedulesDoc.template get<LinuxLogFactory::STaskSchedules>();
+
+    std::vector<LinuxLogFactory::STaskSchedule>::iterator iter = new_schedules.schedules.begin();
+    while(iter != new_schedules.schedules.end() && iter->order_id != first_task.order_id) ++iter;
+    new_schedules.schedules.erase(iter);
+
+    nlohmann::json j = new_schedules;
+    std::cout << j << std::endl;
 
     return 0;
 }
