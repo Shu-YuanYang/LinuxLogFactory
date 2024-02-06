@@ -128,6 +128,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="COrder.cpp" />
+    <ClCompile Include="CTaskSchedule.cpp" />
+    <ClCompile Include="FileLock.cpp" />
     <ClCompile Include="NodeLoop.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -135,6 +137,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="COrder.h" />
+    <ClInclude Include="CTaskSchedule.h" />
+    <ClInclude Include="FileLock.h" />
     <ClInclude Include="nlohmann\json.hpp" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

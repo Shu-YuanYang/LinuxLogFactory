@@ -3,9 +3,11 @@
 
 #include <iostream>
 #include <thread>
-#include "nlohmann/json.hpp"
+//#include "nlohmann/json.hpp"
 //#include <string>
 #include "COrder.h"
+#include "CTaskSchedule.h"
+#include "FileLock.h"
 #include <algorithm>
 
 
@@ -14,27 +16,64 @@
 
 int main(int argc, char* argv[])
 {
+    //N1schedules.json
+    /*
     //std::cout << "Hello World Main Thread!\n";
     std::string arg_str(argv[1]);
     std::replace(arg_str.begin(), arg_str.end(), '\'', '"');
     nlohmann::json Doc{ nlohmann::json::parse(arg_str)};
     
-    LinuxLogFactory::SOrder sample_order{
-        std::vector<std::string>{"s1", "s2", "s3"}, 
-        std::chrono::system_clock::now(),
-        "ssoiweiewef",
-        1
+    LinuxLogFactory::STaskSchedules sample_schedules{
+        std::list<LinuxLogFactory::STaskSchedule> {
+            LinuxLogFactory::STaskSchedule {
+                "20240205162600001",
+                "task1",
+                std::chrono::system_clock::now(),
+                2503
+            },
+            LinuxLogFactory::STaskSchedule {
+                "20240205162600001",
+                "task2",
+                std::chrono::system_clock::now(),
+                1311
+            },
+
+        }
     };
 
-    nlohmann::json j = sample_order;
+    nlohmann::json j = sample_schedules;
     std::cout << j << std::endl;
-    LinuxLogFactory::SOrder confirm_order(j.template get<LinuxLogFactory::SOrder>());
+    LinuxLogFactory::STaskSchedules confirm_schedules(j.template get<LinuxLogFactory::STaskSchedules>());
 
-    long long time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(confirm_order.deadline.time_since_epoch()).count();
+    long long time_elapsed1 = std::chrono::duration_cast<std::chrono::milliseconds>(confirm_schedules.schedules.front().deadline.time_since_epoch()).count();
+    long long time_elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>(confirm_schedules.schedules.back().deadline.time_since_epoch()).count();
+    std::cout << time_elapsed1 << std::endl;
+    std::cout << time_elapsed2 << std::endl;
 
     std::cout << Doc << std::endl;
     //std::thread scheduler_th(scheduler_run, 5);
     //scheduler_th.join();
+    */
+
+
+    std::string N1schedules = std::read_file_with_lock("N1schedules.json");
+    nlohmann::json N1SchedulesDoc{ nlohmann::json::parse(N1schedules) };
+    LinuxLogFactory::STaskSchedules schedules(N1SchedulesDoc.template get<LinuxLogFactory::STaskSchedules>());
+    
+
+    if (schedules.schedules.begin() == schedules.schedules.end()) {
+        long long completion_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        std::cout << "{\"completed_task\": null, \"completed_time\": " << completion_time << ", \"next\": false}" << std::endl;
+    }
+
+    LinuxLogFactory::STaskSchedule& first_task = schedules.schedules.front();
+    // execute first task
+    usleep(first_task.execution_time * 1000);
+    // execute complete
+
+    N1schedules = std::read_file_with_lock("N1schedules.json");
+    N1SchedulesDoc = nlohmann::json::parse(N1schedules);
+    schedules = N1SchedulesDoc.template get<LinuxLogFactory::STaskSchedules>();
 
     return 0;
 }

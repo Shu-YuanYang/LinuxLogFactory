@@ -24,6 +24,12 @@
     <ClCompile Include="COrder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CTaskSchedule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileLock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NodeLoop.rc">
@@ -38,6 +44,12 @@
       <Filter>Resource Files</Filter>
     </ClInclude>
     <ClInclude Include="COrder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CTaskSchedule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileLock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
