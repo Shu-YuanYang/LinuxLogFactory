@@ -106,7 +106,13 @@ namespace std {
 
         // 3. Write new content:
         lseek(fd, 0, SEEK_SET);
-        write(fd, new_content, new_content.size());
+
+        int file_size = new_content.size();
+        if (file_size < file_content.size()) {
+            file_size = file_content.size();
+            new_content.append(file_size - new_content.length(), ' ');
+        }
+        write(fd, new_content.c_str(), new_content.size());
 
         close(fd);
 
