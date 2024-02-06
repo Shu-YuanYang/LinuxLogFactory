@@ -82,7 +82,8 @@ namespace std {
 				// close(fd);
 				throw err_message;
 			}
-			file_content += c;
+            if (read_flag != 0)
+                file_content += c;
 		}
 
 		close(fd);
