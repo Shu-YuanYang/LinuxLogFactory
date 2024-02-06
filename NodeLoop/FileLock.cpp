@@ -98,13 +98,15 @@ namespace std {
             if (read_flag != 0)
                 file_content += c;
         }
-        std::cout << file_content << std::endl;
+        //std::cout << file_content << std::endl;
 
         // 2. transform content:
         std::string new_content = transform_content(file_content);
         std::cout << new_content << std::endl;
 
         // 3. Write new content:
+        lseek(fd, 0, SEEK_SET);
+        write(fd, new_content, new_content.size());
 
         close(fd);
 
