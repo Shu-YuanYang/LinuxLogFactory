@@ -58,6 +58,7 @@ int main(int argc, char* argv[])
 
 
     std::string N1schedules = std::read_file_with_lock("N1schedules.json");
+    std::cout << N1schedules << std::endl;
     nlohmann::json N1SchedulesDoc{ nlohmann::json::parse(N1schedules) };
     LinuxLogFactory::STaskSchedules schedules(N1SchedulesDoc.template get<LinuxLogFactory::STaskSchedules>());
     
