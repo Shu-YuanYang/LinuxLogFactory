@@ -1,3 +1,4 @@
+// code copied and modified from https://voyager.deanza.edu/~perry/lock.html
 #include "FileLock.h"
 #include <sys/types.h>   /***********  Write Lock Setter  *******/
 #include <unistd.h> 
