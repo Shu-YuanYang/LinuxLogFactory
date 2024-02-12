@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "Timer.h"
-#include "Task.h"
+#include "FederatedScheduler.h"
 
 int main()
 {
@@ -46,6 +46,19 @@ int main()
 	for (int i = 0; i < longest_path.size(); ++i) std::cout << longest_path[i]->job_id << " ";
 	std::cout << std::endl;
 
+	std::cout << "total execution time: " << test_task.get_total_execution_time() << std::endl;
+
+	FederatedScheduler fscheduler;
+ 	int processor_demand = fscheduler.compute_processor_demand(test_task);
+	std::cout << "processor demand for task 1: " << processor_demand << std::endl;
+
+	
+	fscheduler.add_active_processors(std::vector<ActiveVirtualProcessor>{
+		ActiveVirtualProcessor(1700, 1),
+		ActiveVirtualProcessor(100, 1)
+	});
+	bool schedulable = fscheduler.is_schedulable_on_active_processors(test_task);
+	std::cout << "schedulable on active processors: " << schedulable << std::endl;
 
 	/*
 	Timer t2;

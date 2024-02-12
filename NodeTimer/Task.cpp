@@ -23,15 +23,15 @@ void Task::set_job_map(const std::vector<SJob>& jobs) {
 	}
 }
 
-const STask& Task::task_detail() {
+const STask& Task::task_detail() const {
 	return this->task;
 }
 
-std::vector<const SJob* > Task::get_longest_path(int& longest_execution_time) {
+std::vector<const SJob* > Task::get_longest_path(int& longest_execution_time) const {
 	return this->get_longest_path(this->ending_job_id, longest_execution_time);
 }
 
-std::vector<const SJob* > Task::get_longest_path(int end_at_job_id, int& longest_execution_time) {
+std::vector<const SJob* > Task::get_longest_path(int end_at_job_id, int& longest_execution_time) const {
 	
 	const SJob& current_job = this->task.jobs.at(end_at_job_id);
 	const std::vector<int>& previous_jobs = current_job.previous_jobs;
@@ -52,4 +52,13 @@ std::vector<const SJob* > Task::get_longest_path(int end_at_job_id, int& longest
 	longest_execution_time += current_job.execution_time;
 
 	return longest_path;
+}
+
+
+int Task::get_total_execution_time() const {
+	int total_execution_timer = 0;
+	for (std::map<int, SJob>::const_iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end(); ++iter) {
+		total_execution_timer += iter->second.execution_time;
+	}
+	return total_execution_timer;
 }

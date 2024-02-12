@@ -32,11 +32,13 @@ public:
 
 	void set_job_map(const std::vector<SJob>& jobs);
 
-	const STask& task_detail();
+	const STask& task_detail() const;
 
 
 	// Compute:
-	std::vector<const SJob* > get_longest_path(int& longest_execution_time);
+	std::vector<const SJob* > get_longest_path(int& longest_execution_time) const;
+
+	int get_total_execution_time() const;
 
 
 private:
@@ -45,6 +47,6 @@ private:
 	int ending_job_id;
 
 
-	std::vector<const SJob* > get_longest_path(int start_at_job_id, int& longest_execution_time);
+	std::vector<const SJob* > get_longest_path(int start_at_job_id, int& longest_execution_time) const;
 };
 
