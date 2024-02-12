@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NodeLoop", "NodeLoop\NodeLoop.vcxproj", "{BE2C4893-7D0E-4B6F-B969-6630C8FAD886}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NodeTimer", "NodeTimer\NodeTimer.vcxproj", "{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -36,6 +38,14 @@ Global
 		{BE2C4893-7D0E-4B6F-B969-6630C8FAD886}.Release|x64.Build.0 = Release|x64
 		{BE2C4893-7D0E-4B6F-B969-6630C8FAD886}.Release|x86.ActiveCfg = Release|Win32
 		{BE2C4893-7D0E-4B6F-B969-6630C8FAD886}.Release|x86.Build.0 = Release|Win32
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Debug|x64.ActiveCfg = Debug|x64
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Debug|x64.Build.0 = Debug|x64
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Debug|x86.ActiveCfg = Debug|Win32
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Debug|x86.Build.0 = Debug|Win32
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Release|x64.ActiveCfg = Release|x64
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Release|x64.Build.0 = Release|x64
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Release|x86.ActiveCfg = Release|Win32
+		{FD4FD7CF-1767-4B34-BF0C-17C79E16DDCC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
