@@ -45,8 +45,7 @@ int main()
 	->setInterval(200)
 	->start();
 
-	system("pause");
-
+	std::cin.get();
 	t2.stop();
 
 
