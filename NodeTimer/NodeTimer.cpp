@@ -3,28 +3,10 @@
 
 #include <iostream>
 #include "Timer.h"
+#include "Task.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
-
-	/*
-		EXAMPLE 1
-		Initialize a timer which will count up
-		the integer every second and output the
-		result.
-	*/
-
-	/*int countMeUp = 0;
-
-	Timer t1([&]() {
-		countMeUp++;
-		std::cout << countMeUp << std::endl;
-		}, 1000);
-
-	t1.start();
-
-	system("pause");*/
 
 	/*
 		EXAMPLE 2
@@ -36,7 +18,36 @@ int main()
 		after initializing the timer instance.
 	*/
 
-	int iGoUp = 0, iGoDown = 10;
+	/*
+	std::vector<SJob> job_map{
+		SJob{ 1, -1, 200, -1, std::vector<int>{ 2, 3 }, std::vector<int>{} },
+		SJob{ 2, -1, 300, -1, std::vector<int>{ 4 }, std::vector<int>{1} },
+		SJob{ 3, -1, 500, -1, std::vector<int>{ 4 }, std::vector<int>{1} },
+		SJob{ 4, -1, 200, -1, std::vector<int>{}, std::vector<int>{ 2, 3 } },
+	};
+	*/
+
+	std::vector<SJob> job_map{
+		SJob{ 1, -1, 200, -1, std::vector<int>{ 2, 3, 5 } },
+		SJob{ 2, -1, 600, -1, std::vector<int>{ 4 } },
+		SJob{ 3, -1, 200, -1, std::vector<int>{ 4 } },
+		SJob{ 4, -1, 200, -1, std::vector<int>{ 6 } },
+		SJob{ 5, -1, 400, -1, std::vector<int>{ 6 } },
+		SJob{ 6, -1, 200, -1, std::vector<int>{} },
+	};
+
+	Task test_task(1, 0, 1600);
+	test_task.set_job_map(job_map);
+
+	int longest_execution_time;
+	std::vector<const SJob* > longest_path = test_task.get_longest_path(longest_execution_time);
+	std::cout << "longest path execution time: " << longest_execution_time << std::endl;
+	std::cout << "longest path: ";
+	for (int i = 0; i < longest_path.size(); ++i) std::cout << longest_path[i]->job_id << " ";
+	std::cout << std::endl;
+
+
+	/*
 	Timer t2;
 
 	t2.setFunc([&]() {
@@ -48,7 +59,7 @@ int main()
 	std::cin.get();
 	t2.stop();
 
-
+	*/
 
 	return 0;
 }
