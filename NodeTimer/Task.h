@@ -19,7 +19,9 @@ public:
 	int release_time;		// at millisecond point
 	int execution_time; // in milliseconds
 	int deadline;		// relative, in milliseconds
-	
+	int period;			// in milliseconds
+	int priority;		// smaller numbers have higher priorities
+
 	std::map<int, SJob> jobs;
 };
 
@@ -28,9 +30,11 @@ class Task
 {
 public:
 
-	Task(int task_id, int release_time, int deadline);
+	Task(int task_id, int release_time, int deadline, int period, int priority);
 
 	void set_job_map(const std::vector<SJob>& jobs);
+
+	void set_job_map(const std::map<int, SJob>& jobs);
 
 	const STask& task_detail() const;
 

@@ -1,7 +1,7 @@
 #include "Task.h"
 
 
-Task::Task(int task_id, int release_time, int deadline) : task{ task_id, release_time, 0, deadline, std::map<int, SJob>() }, starting_job_id(-1), ending_job_id(-1)
+Task::Task(int task_id, int release_time, int deadline, int period, int priority) : task{ task_id, release_time, 0, deadline, period, priority, std::map<int, SJob>() }, starting_job_id(-1), ending_job_id(-1)
 {
 	
 }
@@ -18,7 +18,21 @@ void Task::set_job_map(const std::vector<SJob>& jobs) {
 	//SJob& ending_job = this->task.jobs.at(this->ending_job_id);
 	for (std::vector<SJob>::const_iterator iter(jobs.begin()); iter != jobs.end(); ++iter) {
 		for (int i = 0; i < iter->next_jobs.size(); ++i) {
-			this->task.jobs[iter->next_jobs[i]].previous_jobs.push_back(iter->job_id);
+			this->task.jobs.at(iter->next_jobs[i]).previous_jobs.push_back(iter->job_id);
+		}
+	}
+}
+
+void Task::set_job_map(const std::map<int, SJob>& jobs) {
+	this->task.jobs = jobs;
+	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end(); ++iter) {
+		iter->second.previous_jobs.clear();		// recompute previous jobs instead of manual entry
+		if (iter->second.next_jobs.empty()) this->ending_job_id = iter->second.job_id;
+	}
+
+	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end(); ++iter) {
+		for (int i = 0; i < iter->second.next_jobs.size(); ++i) {
+			this->task.jobs.at(iter->second.next_jobs[i]).previous_jobs.push_back(iter->second.job_id);
 		}
 	}
 }

@@ -7,7 +7,7 @@
 
 int main()
 {
-
+	//std::cout << (-18 % 7) << std::endl;
 	/*
 		EXAMPLE 2
 		Count up an integer and another one down
@@ -36,7 +36,7 @@ int main()
 		SJob{ 6, -1, 200, -1, std::vector<int>{} },
 	};
 
-	Task test_task(1, 0, 1600);
+	Task test_task(1, 0, 1600, 1800, 0);
 	test_task.set_job_map(job_map);
 
 	int longest_execution_time;
@@ -54,8 +54,8 @@ int main()
 
 	
 	fscheduler.add_active_processors(std::vector<ActiveVirtualProcessor>{
-		ActiveVirtualProcessor(1700, 1),
-		ActiveVirtualProcessor(100, 1)
+		ActiveVirtualProcessor(-1, 1400, 1),
+		ActiveVirtualProcessor(-1, 400, 1)
 	});
 	bool schedulable = fscheduler.is_schedulable_on_active_processors(test_task);
 	std::cout << "schedulable on active processors: " << schedulable << std::endl;
