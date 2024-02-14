@@ -39,6 +39,29 @@ int main()
 	Task test_task(1, 0, 1600, 1800, 0);
 	test_task.set_job_map(job_map);
 
+	const STask& task_detail = test_task.task_detail();
+	std::cout << "************************************ TASK DETAIL ***************************************" << std::endl;
+	std::cout << "Task ID: " << task_detail.task_id << std::endl;
+	std::cout << "Release Time: " << task_detail.release_time << std::endl;
+	std::cout << "Period: " << task_detail.period << std::endl;
+	std::cout << "Deadline: " << task_detail.deadline << std::endl;
+	std::cout << "Priority: " << task_detail.priority << std::endl;
+	std::cout << "Jobs: " << std::endl;
+	for (auto iter = task_detail.jobs.begin(); iter != task_detail.jobs.end(); ++iter) {
+		std::cout << "{ " << std::endl;
+		std::cout << "\tJob ID: " << iter->second.job_id << std::endl;
+		std::cout << "\tExecution Time: " << iter->second.execution_time << std::endl;
+		std::cout << "\tNext Jobs: ";
+		for (int j = 0; j < iter->second.next_jobs.size(); ++j) std::cout << iter->second.next_jobs[j] << " ";
+		std::cout << std::endl;
+		std::cout << "\tPrevious Jobs: ";
+		for (int j = 0; j < iter->second.previous_jobs.size(); ++j) std::cout << iter->second.previous_jobs[j] << " ";
+		std::cout << std::endl;
+		std::cout << "}" << std::endl;
+	}
+	std::cout << "************************************ *********** ***************************************" << std::endl;
+
+
 	int longest_execution_time;
 	std::vector<const SJob* > longest_path = test_task.get_longest_path(longest_execution_time);
 	std::cout << "longest path execution time: " << longest_execution_time << std::endl;
@@ -48,7 +71,7 @@ int main()
 
 	std::cout << "total execution time: " << test_task.get_total_execution_time() << std::endl;
 
-	FederatedScheduler fscheduler;
+	FederatedScheduler fscheduler(10);
  	int processor_demand = fscheduler.compute_processor_demand(test_task);
 	std::cout << "processor demand for task 1: " << processor_demand << std::endl;
 

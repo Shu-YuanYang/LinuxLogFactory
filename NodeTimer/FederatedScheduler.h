@@ -23,7 +23,7 @@ class FederatedScheduler
 
 public:
 
-	FederatedScheduler();
+	FederatedScheduler(int proceessor_count);
 
 	void add_task(Task& task);
 
@@ -39,13 +39,19 @@ public:
 
 	int supply_bound_function(int passive_virtual_processor_id, int interval) const;
 
+	bool is_useful_passive_processor(int passive_virtual_processor_id, const Task& task) const;
+
+	void schedule_task_set(bool& schedulable);
+
 private:
 
+	int __processor_count__;
 	int __max_processor_id__ = 0;
 	std::vector<Task> tasks;
-	std::map<int, std::vector<ActiveVirtualProcessor> > active_virtual_processors;
-	std::vector<ActiveVirtualProcessor* > __active_virtual_processor_refs__;
-	std::vector<VirtualProcessor> passive_virtual_processors;
+	std::map<int, std::vector<ActiveVirtualProcessor* > > active_virtual_processor_refs;
+	std::map<int, std::vector<VirtualProcessor* > > passive_virtual_processor_refs;
+	std::vector<ActiveVirtualProcessor> __active_virtual_processors__;
+	std::vector<VirtualProcessor> __passive_virtual_processors__;
 	
 
 	/*
