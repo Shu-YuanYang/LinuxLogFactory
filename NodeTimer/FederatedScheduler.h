@@ -48,8 +48,8 @@ private:
 	int __processor_count__;
 	int __max_processor_id__ = 0;
 	std::vector<Task> tasks;
-	std::map<int, std::vector<ActiveVirtualProcessor* > > active_virtual_processor_refs;
-	std::map<int, std::vector<VirtualProcessor* > > passive_virtual_processor_refs;
+	std::map<int, std::vector<int> > active_virtual_processor_refs;
+	std::map<int, std::vector<int> > passive_virtual_processor_refs;
 	std::vector<ActiveVirtualProcessor> __active_virtual_processors__;
 	std::vector<VirtualProcessor> __passive_virtual_processors__;
 	
