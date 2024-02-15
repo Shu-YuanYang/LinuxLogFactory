@@ -47,6 +47,8 @@ public:
 
 	void schedule_task_set(bool& schedulable);
 
+	void reset(int processor_count);
+
 private:
 
 	int __processor_count__;

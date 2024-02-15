@@ -9,6 +9,17 @@ ActiveVirtualProcessor::ActiveVirtualProcessor(int proc_id, int processor_budget
 
 FederatedScheduler::FederatedScheduler(int processor_count) : __processor_count__(processor_count), __max_processor_id__(0), tasks{}, active_virtual_processor_refs{}, __active_virtual_processors__{}, passive_virtual_processor_refs{}, __passive_virtual_processors__{} {}
 
+void FederatedScheduler::reset(int processor_count) {
+	this->__processor_count__ = processor_count;
+	this->__max_processor_id__ = 0;
+	this->tasks.clear();
+	this->active_virtual_processor_refs.clear();
+	this->passive_virtual_processor_refs.clear();
+	this->__active_virtual_processors__.clear();
+	this->__passive_virtual_processors__.clear();
+}
+
+
 void FederatedScheduler::add_task(STask& task) {
 	task.task_id = this->tasks.size();
 	this->tasks.push_back(Task(task));
