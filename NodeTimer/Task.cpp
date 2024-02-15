@@ -1,6 +1,11 @@
 #include "Task.h"
 
 
+
+Task::Task(const STask& _task) : task(_task), starting_job_id(-1), ending_job_id(-1) {
+	this->set_job_map();
+}
+
 Task::Task(int task_id, int release_time, int deadline, int period, int priority) : task{ task_id, release_time, 0, deadline, period, priority, std::map<int, SJob>() }, starting_job_id(-1), ending_job_id(-1)
 {
 	
@@ -8,6 +13,9 @@ Task::Task(int task_id, int release_time, int deadline, int period, int priority
 
 void Task::set_job_map(const std::vector<SJob>& jobs) {
 	this->task.jobs.clear();
+	this->starting_job_id = -1;
+	this->ending_job_id = -1;
+
 	for (std::vector<SJob>::const_iterator iter(jobs.begin()); iter != jobs.end(); ++iter) {
 		auto result = this->task.jobs.insert({ iter->job_id, *iter });
 		result.first->second.previous_jobs.clear();		// recompute previous jobs instead of manual entry
@@ -21,10 +29,15 @@ void Task::set_job_map(const std::vector<SJob>& jobs) {
 			this->task.jobs.at(iter->next_jobs[i]).previous_jobs.push_back(iter->job_id);
 		}
 	}
+
+	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end() && this->starting_job_id == -1; ++iter) {
+		if (iter->second.previous_jobs.empty()) this->starting_job_id = iter->second.job_id;
+	}
 }
 
-void Task::set_job_map(const std::map<int, SJob>& jobs) {
-	this->task.jobs = jobs;
+void Task::set_job_map() {
+	this->starting_job_id = -1;
+	this->ending_job_id = -1;
 	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end(); ++iter) {
 		iter->second.previous_jobs.clear();		// recompute previous jobs instead of manual entry
 		if (iter->second.next_jobs.empty()) this->ending_job_id = iter->second.job_id;
@@ -35,6 +48,15 @@ void Task::set_job_map(const std::map<int, SJob>& jobs) {
 			this->task.jobs.at(iter->second.next_jobs[i]).previous_jobs.push_back(iter->second.job_id);
 		}
 	}
+
+	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end() && this->starting_job_id == -1; ++iter) {
+		if (iter->second.previous_jobs.empty()) this->starting_job_id = iter->second.job_id;
+	}
+}
+
+void Task::set_job_map(const std::map<int, SJob>& jobs) {
+	this->task.jobs = jobs;
+	this->set_job_map();
 }
 
 const STask& Task::task_detail() const {
@@ -76,3 +98,97 @@ int Task::get_total_execution_time() const {
 	}
 	return total_execution_timer;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void to_json(nlohmann::json& j, const SJob& job) {
+	j = nlohmann::json{
+		{
+			"job_id", job.job_id
+		},
+		{
+			"execution_time", job.execution_time
+		},
+		{
+			"next_jobs", job.next_jobs
+		},
+		{
+			"previous_jobs", job.previous_jobs
+		}
+	};
+}
+
+void from_json(const nlohmann::json& j, SJob& job) {
+	j.at("job_id").get_to(job.job_id);
+	j.at("execution_time").get_to(job.execution_time);
+	job.next_jobs = j["next_jobs"].get<std::vector<int> >();
+	job.previous_jobs = j["previous_jobs"].get<std::vector<int> >();
+}
+
+void to_json(nlohmann::json& j, const STask& task) {
+
+	std::vector<SJob> jobs_vec(task.jobs.size());
+	int i = 0;
+	for (std::map<int, SJob>::const_iterator iter(task.jobs.begin()); iter != task.jobs.end(); ++iter, ++i) jobs_vec[i] = iter->second;
+
+	j = nlohmann::json{
+		{
+			"task_id", task.task_id
+		},
+		{
+			"release_time", task.release_time
+		},
+		{
+			"deadline", task.deadline
+		},
+		{
+			"period", task.period
+		},
+		{
+			"priority", task.priority
+		},
+		{
+			"jobs", jobs_vec
+		}
+	};
+}
+
+void from_json(const nlohmann::json& j, STask& task) {
+	j.at("task_id").get_to(task.task_id);
+	j.at("release_time").get_to(task.release_time);
+	j.at("deadline").get_to(task.deadline);
+	j.at("period").get_to(task.period);
+	j.at("priority").get_to(task.priority);
+	std::vector<SJob> jobs;
+	jobs = j["jobs"].get<std::vector<SJob> >();
+	for (int i=0; i < jobs.size(); ++i) task.jobs.insert({ jobs[i].job_id, jobs[i] });
+}
+
+void to_json(nlohmann::json& j, const STasks& tasks) {
+	j = nlohmann::json{
+		{
+			"tasks", tasks.tasks
+		}
+	};
+}
+
+void from_json(const nlohmann::json& j, STasks& tasks) {
+	tasks.tasks = j["tasks"].get<std::vector<STask> >();
+}
+

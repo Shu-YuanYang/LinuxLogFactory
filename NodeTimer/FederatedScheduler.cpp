@@ -9,6 +9,10 @@ ActiveVirtualProcessor::ActiveVirtualProcessor(int proc_id, int processor_budget
 
 FederatedScheduler::FederatedScheduler(int processor_count) : __processor_count__(processor_count), __max_processor_id__(0), tasks{}, active_virtual_processor_refs{}, __active_virtual_processors__{}, passive_virtual_processor_refs{}, __passive_virtual_processors__{} {}
 
+void FederatedScheduler::add_task(STask& task) {
+	task.task_id = this->tasks.size();
+	this->tasks.push_back(Task(task));
+}
 
 void FederatedScheduler::add_task(Task& task) {
 	const STask& task_detail = task.task_detail();
@@ -18,6 +22,10 @@ void FederatedScheduler::add_task(Task& task) {
 		task = aligned_task;
 	}
 	this->tasks.push_back(task);
+}
+
+const std::vector<Task>& FederatedScheduler::get_tasks() const {
+	return this->tasks;
 }
 
 int FederatedScheduler::compute_processor_demand(const Task& task) const {

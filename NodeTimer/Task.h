@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include "nlohmann/json.hpp"
 
 
 struct SJob {
@@ -25,10 +26,17 @@ public:
 	std::map<int, SJob> jobs;
 };
 
+struct STasks {
+public:
+	std::vector<STask> tasks;
+};
+
 
 class Task
 {
 public:
+
+	Task(const STask& task);
 
 	Task(int task_id, int release_time, int deadline, int period, int priority);
 
@@ -52,5 +60,24 @@ private:
 
 
 	std::vector<const SJob* > get_longest_path(int start_at_job_id, int& longest_execution_time) const;
+
+	void set_job_map();
 };
+
+
+
+void to_json(nlohmann::json& j, const SJob& job);
+
+void from_json(const nlohmann::json& j, SJob& job);
+
+void to_json(nlohmann::json& j, const STask& task);
+
+void from_json(const nlohmann::json& j, STask& task);
+
+void to_json(nlohmann::json& j, const STasks& tasks);
+
+void from_json(const nlohmann::json& j, STasks& tasks);
+
+
+
 

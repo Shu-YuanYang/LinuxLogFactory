@@ -25,7 +25,11 @@ public:
 
 	FederatedScheduler(int proceessor_count);
 
+	void add_task(STask& task);
+
 	void add_task(Task& task);
+
+	const std::vector<Task>& get_tasks() const;
 
 	int compute_processor_demand(const Task& task) const;
 
