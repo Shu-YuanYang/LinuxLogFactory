@@ -251,7 +251,7 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 		}
 		// some jobs on active processors, and some on passive:
 		else if (this->__active_virtual_processors__.size() < this->__processor_count__) {
-			std::vector<ActiveVirtualProcessor> active_processors(processor_demand, ActiveVirtualProcessor(-1, task_detail.deadline - longest_execution_time, task_detail.task_id));
+			std::vector<ActiveVirtualProcessor> active_processors(this->__processor_count__ - this->__active_virtual_processors__.size(), ActiveVirtualProcessor(-1, task_detail.deadline - longest_execution_time, task_detail.task_id));
 			active_processors.front().budget = task_detail.deadline;
 			this->add_active_processors(active_processors);
 
@@ -260,7 +260,7 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 			//for (int j = 0; j < active_processor_refs.size(); ++j) active_processor_ids[j] = active_processor_refs[i]->processor_id;
 			std::vector<int> passive_processor_ids;
 			while (!this->is_schedulable_on_mixed_processors(this->tasks[i], active_processor_refs, passive_processor_ids)) {
-				std::vector<int> unused_passive_processor_refs = this->passive_virtual_processor_refs.at(-1);
+				std::vector<int>& unused_passive_processor_refs = this->passive_virtual_processor_refs.at(-1);
 				std::vector<int>::iterator iter = unused_passive_processor_refs.begin();
 				while (iter != unused_passive_processor_refs.end() && !this->is_useful_passive_processor(*iter, this->tasks[i])) ++iter;
 				if (iter == unused_passive_processor_refs.end()) return;
@@ -268,7 +268,7 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 				passive_processor_ids.push_back(*iter);
 				//if (this->passive_virtual_processor_refs.find(task_detail.task_id) == this->passive_virtual_processor_refs.end()) this->passive_virtual_processor_refs.insert({ task_detail.task_id, std::vector<int>{ *iter } });
 				//else this->passive_virtual_processor_refs.at(task_detail.task_id).push_back(*iter);
-				this->passive_virtual_processor_refs.at(-1).erase(iter);
+				unused_passive_processor_refs.erase(iter);
 			}
 			this->passive_virtual_processor_refs.insert({ task_detail.task_id, passive_processor_ids });
 		}
@@ -276,7 +276,7 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 		else {
 			std::vector<int> passive_processor_ids;
 			while (!this->is_schedulable_on_passive_processors(this->tasks[i], passive_processor_ids)) {
-				std::vector<int> unused_passive_processor_refs = this->passive_virtual_processor_refs.at(-1);
+				std::vector<int>& unused_passive_processor_refs = this->passive_virtual_processor_refs.at(-1);
 				std::vector<int>::iterator iter = unused_passive_processor_refs.begin();
 				while (iter != unused_passive_processor_refs.end() && !this->is_useful_passive_processor(*iter, this->tasks[i])) ++iter;
 				if (iter == unused_passive_processor_refs.end()) return;
@@ -284,7 +284,7 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 				passive_processor_ids.push_back(*iter);
 				//if (this->passive_virtual_processor_refs.find(task_detail.task_id) == this->passive_virtual_processor_refs.end()) this->passive_virtual_processor_refs.insert({ task_detail.task_id, std::vector<VirtualProcessor* >{ *iter } });
 				//else this->passive_virtual_processor_refs.at(task_detail.task_id).push_back(*iter);
-				this->passive_virtual_processor_refs.at(-1).erase(iter);
+				unused_passive_processor_refs.erase(iter);
 			}
 			this->passive_virtual_processor_refs.insert({ task_detail.task_id, passive_processor_ids });
 		}
@@ -293,4 +293,29 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 	schedulable = true;
 }
 
+
+
+
+std::vector<ProcessorAssignment> FederatedScheduler::get_processor_assignments() const {
+	
+	std::vector<ProcessorAssignment> assignments(this->tasks.size());
+	for (int i = 0; i < this->tasks.size(); ++i) {
+		assignments[i].task_ref = &(this->tasks[i]);
+
+		int task_id = this->tasks[i].task_detail().task_id;
+
+		if (this->active_virtual_processor_refs.find(task_id) != this->active_virtual_processor_refs.end()) {
+			const std::vector<int>& processor_ids = this->active_virtual_processor_refs.at(task_id);
+			for (int j = 0; j < processor_ids.size(); ++j) assignments[i].active_virtual_processor_refs.push_back(&(this->__active_virtual_processors__[processor_ids[j]]));
+		}
+
+		if (this->passive_virtual_processor_refs.find(task_id) != this->passive_virtual_processor_refs.end()) {
+			const std::vector<int>& processor_ids = this->passive_virtual_processor_refs.at(task_id);
+			for (int j = 0; j < processor_ids.size(); ++j) assignments[i].passive_virtual_processor_refs.push_back(&(this->__passive_virtual_processors__[processor_ids[j]]));
+		}
+	}
+
+	return assignments;
+
+}
 

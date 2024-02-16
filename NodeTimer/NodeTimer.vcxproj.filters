@@ -33,6 +33,9 @@
     <ClCompile Include="FileLock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FederatedSchedulingTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Timer.h">
@@ -49,6 +52,9 @@
     </ClInclude>
     <ClInclude Include="nlohmann\json.hpp">
       <Filter>nlohmann</Filter>
+    </ClInclude>
+    <ClInclude Include="FederatedSchedulingTest.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

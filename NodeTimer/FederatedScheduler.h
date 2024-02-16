@@ -18,6 +18,17 @@ public:
 };
 
 
+struct ProcessorAssignment {
+public:
+	const Task* task_ref = nullptr;
+	std::vector<const ActiveVirtualProcessor* > active_virtual_processor_refs;
+	std::vector<const VirtualProcessor* > passive_virtual_processor_refs;
+};
+
+
+
+
+
 class FederatedScheduler
 {
 
@@ -30,6 +41,8 @@ public:
 	void add_task(Task& task);
 
 	const std::vector<Task>& get_tasks() const;
+
+	std::vector<ProcessorAssignment> get_processor_assignments() const;
 
 	int compute_processor_demand(const Task& task) const;
 

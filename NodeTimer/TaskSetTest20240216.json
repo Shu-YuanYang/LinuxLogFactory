@@ -1,0 +1,87 @@
+{
+    "tasks": [
+        {
+            "deadline": 1300,
+            "jobs": [
+                {
+                    "execution_time": 200,
+                    "job_id": 1,
+                    "next_jobs": [
+                        2,
+                        3
+                    ],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 500,
+                    "job_id": 2,
+                    "next_jobs": [
+                        4
+                    ],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 300,
+                    "job_id": 3,
+                    "next_jobs": [
+                        4
+                    ],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 400,
+                    "job_id": 4,
+                    "next_jobs": [],
+                    "previous_jobs": []
+                }
+            ],
+            "period": 1500,
+            "priority": 1,
+            "release_time": 0,
+            "task_id": -1
+        },
+        {
+            "deadline": 1600,
+            "jobs": [
+                {
+                    "execution_time": 100,
+                    "job_id": 1,
+                    "next_jobs": [
+                        2, 3, 5
+                    ],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 400,
+                    "job_id": 2,
+                    "next_jobs": [
+                        4
+                    ],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 600,
+                    "job_id": 3,
+                    "next_jobs": [5],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 400,
+                    "job_id": 4,
+                    "next_jobs": [5],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 200,
+                    "job_id": 5,
+                    "next_jobs": [],
+                    "previous_jobs": []
+                }
+            ],
+            "period": 2000,
+            "priority": 2,
+            "release_time": 0,
+            "task_id": -1
+        }
+    ]
+}

@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FederatedScheduler.cpp" />
+    <ClCompile Include="FederatedSchedulingTest.cpp" />
     <ClCompile Include="FileLock.cpp" />
     <ClCompile Include="NodeTimer.cpp" />
     <ClCompile Include="Task.cpp" />
@@ -135,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FederatedScheduler.h" />
+    <ClInclude Include="FederatedSchedulingTest.h" />
     <ClInclude Include="FileLock.h" />
     <ClInclude Include="nlohmann\json.hpp" />
     <ClInclude Include="Task.h" />
