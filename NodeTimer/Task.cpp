@@ -1,5 +1,5 @@
 #include "Task.h"
-
+#include <queue>
 
 
 Task::Task(const STask& _task) : task(_task), starting_job_id(-1), ending_job_id(-1) {
@@ -19,6 +19,8 @@ void Task::set_job_map(const std::vector<SJob>& jobs) {
 	for (std::vector<SJob>::const_iterator iter(jobs.begin()); iter != jobs.end(); ++iter) {
 		auto result = this->task.jobs.insert({ iter->job_id, *iter });
 		result.first->second.previous_jobs.clear();		// recompute previous jobs instead of manual entry
+		result.first->second.deadline = this->task.deadline;
+		result.first->second.progress = 0;
 		if (iter->next_jobs.empty()) this->ending_job_id = iter->job_id;
 		//if (iter->previous_jobs.empty()) this->starting_job_id = iter->job_id;
 	}
@@ -33,6 +35,8 @@ void Task::set_job_map(const std::vector<SJob>& jobs) {
 	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end() && this->starting_job_id == -1; ++iter) {
 		if (iter->second.previous_jobs.empty()) this->starting_job_id = iter->second.job_id;
 	}
+
+	this->compute_job_deadlines();
 }
 
 void Task::set_job_map() {
@@ -40,6 +44,8 @@ void Task::set_job_map() {
 	this->ending_job_id = -1;
 	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end(); ++iter) {
 		iter->second.previous_jobs.clear();		// recompute previous jobs instead of manual entry
+		iter->second.deadline = this->task.deadline;
+		iter->second.progress = 0;
 		if (iter->second.next_jobs.empty()) this->ending_job_id = iter->second.job_id;
 	}
 
@@ -52,12 +58,42 @@ void Task::set_job_map() {
 	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end() && this->starting_job_id == -1; ++iter) {
 		if (iter->second.previous_jobs.empty()) this->starting_job_id = iter->second.job_id;
 	}
+
+	this->compute_job_deadlines();
 }
 
 void Task::set_job_map(const std::map<int, SJob>& jobs) {
 	this->task.jobs = jobs;
 	this->set_job_map();
 }
+
+
+
+struct __deadline_order__ {
+	int job_id;
+	int deadline;
+};
+
+void Task::compute_job_deadlines() {
+	// reverse lookup
+	std::queue<__deadline_order__> previous_job_deadline_orders;
+	SJob* current_job = &(this->task.jobs.at(this->ending_job_id));
+	current_job->deadline = this->task.deadline;
+	for (int i = 0; i < current_job->previous_jobs.size(); ++i) previous_job_deadline_orders.push(__deadline_order__{ current_job->previous_jobs[i], current_job->deadline - current_job->execution_time });
+	
+	while (!previous_job_deadline_orders.empty()) {
+		const __deadline_order__& order = previous_job_deadline_orders.front();
+		current_job = &(this->task.jobs[order.job_id]);
+		current_job->deadline = std::min(current_job->deadline, order.deadline);
+		previous_job_deadline_orders.pop();
+		
+		for (int i = 0; i < current_job->previous_jobs.size(); ++i) previous_job_deadline_orders.push(__deadline_order__{ current_job->previous_jobs[i], current_job->deadline - current_job->execution_time });
+	}
+	
+}
+
+
+
 
 const STask& Task::task_detail() const {
 	return this->task;
@@ -124,6 +160,9 @@ void to_json(nlohmann::json& j, const SJob& job) {
 		},
 		{
 			"execution_time", job.execution_time
+		},
+		{
+			"deadline", job.deadline
 		},
 		{
 			"next_jobs", job.next_jobs

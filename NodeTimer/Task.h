@@ -12,6 +12,7 @@ struct SJob {
 	int deadline;		// relative, in milliseconds
 	std::vector<int> next_jobs;
 	std::vector<int> previous_jobs;
+	int progress = 0;
 };
 
 struct STask {
@@ -52,7 +53,6 @@ public:
 
 	int get_total_execution_time() const;
 
-
 private:
 	STask task;
 	int starting_job_id;
@@ -62,6 +62,9 @@ private:
 	std::vector<const SJob* > get_longest_path(int start_at_job_id, int& longest_execution_time) const;
 
 	void set_job_map();
+
+	void compute_job_deadlines();
+
 };
 
 

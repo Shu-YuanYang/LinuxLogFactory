@@ -12,7 +12,8 @@ int main()
 {
 	//std::cout << (-18 % 7) << std::endl;
 
-	// FederatedSchedulingUnitTestManual();
+	FederatedSchedulingUnitTestManual();
+	/*
 	std::string TasksStr = std::read_file("TaskSetTest20240216.json");
 	nlohmann::json TaskDoc = nlohmann::json::parse(TasksStr);
 	STasks tasks{ TaskDoc.template get<STasks>() };
@@ -37,7 +38,7 @@ int main()
 			std::cout << "{ processor_id: " << processor_assignments[i].passive_virtual_processor_refs[j]->processor_id << ", budget: " << processor_assignments[i].passive_virtual_processor_refs[j]->budget << " } ";
 		std::cout << std::endl;
 	}
-
+	*/
 
 
 	/*
