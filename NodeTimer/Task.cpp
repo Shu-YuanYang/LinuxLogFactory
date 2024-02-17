@@ -2,11 +2,11 @@
 #include <queue>
 
 
-Task::Task(const STask& _task) : task(_task), starting_job_id(-1), ending_job_id(-1) {
+Task::Task(const STask& _task) : task(_task), starting_job_id(-1), ending_job_id(-1), eligible_job_refs() {
 	this->set_job_map();
 }
 
-Task::Task(int task_id, int release_time, int deadline, int period, int priority) : task{ task_id, release_time, 0, deadline, period, priority, std::map<int, SJob>() }, starting_job_id(-1), ending_job_id(-1)
+Task::Task(int task_id, int release_time, int deadline, int period, int priority) : task{ task_id, release_time, 0, deadline, period, priority, std::map<int, SJob>() }, starting_job_id(-1), ending_job_id(-1), eligible_job_refs()
 {
 	
 }
@@ -20,7 +20,8 @@ void Task::set_job_map(const std::vector<SJob>& jobs) {
 		auto result = this->task.jobs.insert({ iter->job_id, *iter });
 		result.first->second.previous_jobs.clear();		// recompute previous jobs instead of manual entry
 		result.first->second.deadline = this->task.deadline;
-		result.first->second.progress = 0;
+		//result.first->second.progress = 0;
+		//result.first->second.__eligibility_index__ = 0;
 		if (iter->next_jobs.empty()) this->ending_job_id = iter->job_id;
 		//if (iter->previous_jobs.empty()) this->starting_job_id = iter->job_id;
 	}
@@ -33,10 +34,15 @@ void Task::set_job_map(const std::vector<SJob>& jobs) {
 	}
 
 	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end() && this->starting_job_id == -1; ++iter) {
-		if (iter->second.previous_jobs.empty()) this->starting_job_id = iter->second.job_id;
+		if (iter->second.previous_jobs.empty()) { 
+			this->starting_job_id = iter->second.job_id; 
+			//eligible_job_refs.insert({ this->starting_job_id, this->task.release_time + iter->second.deadline });
+		}
 	}
+	
 
 	this->compute_job_deadlines();
+	this->renew_period(this->task.release_time);
 }
 
 void Task::set_job_map() {
@@ -45,7 +51,8 @@ void Task::set_job_map() {
 	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end(); ++iter) {
 		iter->second.previous_jobs.clear();		// recompute previous jobs instead of manual entry
 		iter->second.deadline = this->task.deadline;
-		iter->second.progress = 0;
+		//iter->second.progress = 0;
+		//iter->second.__eligibility_index__ = 0;
 		if (iter->second.next_jobs.empty()) this->ending_job_id = iter->second.job_id;
 	}
 
@@ -56,10 +63,14 @@ void Task::set_job_map() {
 	}
 
 	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end() && this->starting_job_id == -1; ++iter) {
-		if (iter->second.previous_jobs.empty()) this->starting_job_id = iter->second.job_id;
+		if (iter->second.previous_jobs.empty()) { 
+			this->starting_job_id = iter->second.job_id; 
+			//eligible_job_refs.insert({ this->starting_job_id, this->task.release_time + iter->second.deadline });
+		}
 	}
 
 	this->compute_job_deadlines();
+	this->renew_period(this->task.release_time);
 }
 
 void Task::set_job_map(const std::map<int, SJob>& jobs) {
@@ -135,6 +146,39 @@ int Task::get_total_execution_time() const {
 	return total_execution_timer;
 }
 
+
+const std::map<int, int>& Task::get_eligible_absolute_deadlines() const {
+	return this->eligible_job_refs;
+}
+
+void Task::update_job_progress(int job_id, int time_units) {
+	std::map<int, int>::iterator iter(this->eligible_job_refs.find(job_id));
+	if (iter == this->eligible_job_refs.end()) throw "Job ID: " + std::to_string(job_id) + " is not eligible for execution!";
+	SJob& job = this->task.jobs.at(job_id);
+	job.progress += time_units;
+	if (job.execution_time < job.progress) throw "Progress of Job ID: " + std::to_string(job_id) + " is " + std::to_string(job.progress) + " and exceeds the allocated execution time " + std::to_string(job.execution_time);
+	if (job.execution_time != job.progress) return;	// no state changes for eligible jobs
+	this->eligible_job_refs.erase(iter);
+	for (int i = 0; i < job.next_jobs.size(); ++i) {
+		SJob& next_job = this->task.jobs.at(job.next_jobs[i]);
+		++next_job.__eligibility_index__;
+		if (next_job.__eligibility_index__ == next_job.previous_jobs.size())
+			this->eligible_job_refs.insert({ next_job.job_id, this->task.release_time + next_job.deadline });
+	}
+}
+
+
+void Task::renew_period(int current_time_step) {
+	if ((current_time_step - this->task.release_time) % this->task.period != 0) throw "Period has not ended for Task ID: " + std::to_string(this->task.task_id) + " with release time = " + std::to_string(this->task.release_time) + " and period = " + std::to_string(this->task.period) + " at time step " + std::to_string(current_time_step);
+	this->eligible_job_refs.clear();
+	this->task.release_time = current_time_step; // update release time
+	for (std::map<int, SJob>::iterator iter(this->task.jobs.begin()); iter != this->task.jobs.end(); ++iter) {
+		iter->second.progress = 0;
+		iter->second.__eligibility_index__ = 0;
+	}
+	SJob& starting_job = this->task.jobs.at(this->starting_job_id);
+	this->eligible_job_refs.insert({ this->starting_job_id, this->task.release_time + starting_job.deadline });
+}
 
 
 

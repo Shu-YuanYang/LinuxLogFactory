@@ -296,7 +296,7 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 
 
 
-std::vector<ProcessorAssignment> FederatedScheduler::get_processor_assignments() const {
+std::vector<ProcessorAssignment> FederatedScheduler::get_processor_assignments() {
 	
 	std::vector<ProcessorAssignment> assignments(this->tasks.size());
 	for (int i = 0; i < this->tasks.size(); ++i) {

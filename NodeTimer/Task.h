@@ -13,6 +13,7 @@ struct SJob {
 	std::vector<int> next_jobs;
 	std::vector<int> previous_jobs;
 	int progress = 0;
+	int __eligibility_index__ = 0;
 };
 
 struct STask {
@@ -47,17 +48,23 @@ public:
 
 	const STask& task_detail() const;
 
+	const std::map<int, int>& get_eligible_absolute_deadlines() const;
+
 
 	// Compute:
 	std::vector<const SJob* > get_longest_path(int& longest_execution_time) const;
 
 	int get_total_execution_time() const;
 
+	void update_job_progress(int job_id, int time_units);
+
+	void renew_period(int current_time_step);
+
 private:
 	STask task;
 	int starting_job_id;
 	int ending_job_id;
-
+	std::map<int, int> eligible_job_refs;
 
 	std::vector<const SJob* > get_longest_path(int start_at_job_id, int& longest_execution_time) const;
 

@@ -77,7 +77,7 @@ long long lcm(int a, int b)
 	return (a / gcd(a, b)) * b;
 }
 
-void RunScheduleSimulation(const FederatedScheduler& scheduler) {
+void RunScheduleSimulation(FederatedScheduler& scheduler) {
 
 	std::vector<ProcessorAssignment> assignments(scheduler.get_processor_assignments());
 
@@ -86,6 +86,18 @@ void RunScheduleSimulation(const FederatedScheduler& scheduler) {
 	for (int i = 0; i < assignments.size(); ++i) hyper_period = lcm(assignments[i].task_ref->task_detail().period, hyper_period);
 
 	for (int step = 0; step < hyper_period; hyper_period += 100) {
+		for (int i = 0; i < assignments.size(); ++i) {
+			// check for deadline misses
+			
+			// check for period renewal
+			Task* task_ref = assignments[i].task_ref;
+			const STask& task_detail = task_ref->task_detail();
+			if (step - task_detail.release_time == task_detail.period) task_ref->renew_period(step);
+			
+			// collect all eligible jobs
+		}
+		
+		// for each processor, update job progress
 		
 	}
 

@@ -20,7 +20,7 @@ public:
 
 struct ProcessorAssignment {
 public:
-	const Task* task_ref = nullptr;
+	Task* task_ref = nullptr;
 	std::vector<const ActiveVirtualProcessor* > active_virtual_processor_refs;
 	std::vector<const VirtualProcessor* > passive_virtual_processor_refs;
 };
@@ -42,7 +42,7 @@ public:
 
 	const std::vector<Task>& get_tasks() const;
 
-	std::vector<ProcessorAssignment> get_processor_assignments() const;
+	std::vector<ProcessorAssignment> get_processor_assignments();
 
 	int compute_processor_demand(const Task& task) const;
 
