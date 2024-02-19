@@ -77,28 +77,116 @@ long long lcm(int a, int b)
 	return (a / gcd(a, b)) * b;
 }
 
+
+struct TaskJobIndex {
+public:
+	int task_id;
+	int job_id;
+	int laxity;
+};
+
 void RunScheduleSimulation(FederatedScheduler& scheduler) {
 
 	std::vector<ProcessorAssignment> assignments(scheduler.get_processor_assignments());
-
+	
 	int time_unit = 100;
 	int hyper_period = 1;
 	for (int i = 0; i < assignments.size(); ++i) hyper_period = lcm(assignments[i].task_ref->task_detail().period, hyper_period);
 
-	for (int step = 0; step < hyper_period; hyper_period += 100) {
+	// Run timeline:
+	for (int step = 0; step < hyper_period; hyper_period += time_unit) {
+
+		std::vector<TaskJobIndex> active_processor_scheduled_jobs(scheduler.get_processor_count(), TaskJobIndex{ -1, -1, INT32_MAX });
+		std::vector<TaskJobIndex> passive_processor_scheduled_jobs(scheduler.get_processor_count(), TaskJobIndex{ -1, -1, INT32_MAX });
+
+		// Period update and active processor resource allocation:
 		for (int i = 0; i < assignments.size(); ++i) {
-			// check for deadline misses
-			
-			// check for period renewal
 			Task* task_ref = assignments[i].task_ref;
 			const STask& task_detail = task_ref->task_detail();
-			if (step - task_detail.release_time == task_detail.period) task_ref->renew_period(step);
+
+			// check for deadline misses
+			std::map<int, int> eligible_deadlines( task_ref->get_eligible_absolute_deadlines() );
+			for (std::map<int, int>::const_iterator iter(eligible_deadlines.begin()); iter != eligible_deadlines.end(); ++iter) {
+				const SJob& job_ref = task_detail.jobs.at(iter->first);
+				if (step == iter->second && job_ref.progress < job_ref.execution_time) {
+					std::cout << "Task ID: " << std::to_string(task_detail.task_id) << ", Job ID: " << std::to_string(iter->first) << " missed the deadline. Absolute deadline: " << std::to_string(iter->second) << ", progress: " << std::to_string(job_ref.progress);
+					return;
+				}
+			}
 			
-			// collect all eligible jobs
+			// check for period renewal
+			if (step - task_detail.release_time == task_detail.period) scheduler.renew_period(task_detail.task_id, step);
+			
+			// determine eligible jobs for active processors (LLF): 
+			eligible_deadlines = task_ref->get_eligible_absolute_deadlines();
+			for (std::map<int, int>::const_iterator iter(eligible_deadlines.begin()); iter != eligible_deadlines.end(); ++iter) {
+				const SJob& job_ref = task_detail.jobs.at(iter->first);
+				int laxity = task_ref->get_job_laxity(iter->first, step);
+				for (int p = 0; p < assignments[i].active_virtual_processor_refs.size(); ++p) {
+					int processor_id = assignments[i].active_virtual_processor_refs[p]->processor_id;
+					if (assignments[i].active_virtual_processor_refs[p]->__used_budget__ == assignments[i].active_virtual_processor_refs[p]->budget) continue; // active processor budget exhausted
+					if (laxity < active_processor_scheduled_jobs[processor_id].laxity) {
+						active_processor_scheduled_jobs[processor_id].task_id = task_detail.task_id;
+						active_processor_scheduled_jobs[processor_id].job_id = job_ref.job_id;
+						active_processor_scheduled_jobs[processor_id].laxity = laxity;
+					}
+				}
+			}
+		}
+
+		// Passive processor resource allocation:
+		for (int i = 0; i < assignments.size(); ++i) {
+
+			Task* task_ref = assignments[i].task_ref;
+			const STask& task_detail = task_ref->task_detail();
+			// determine eligible jobs for passive processors (LLF):
+			
+			std::map<int, int> eligible_deadlines = task_ref->get_eligible_absolute_deadlines();
+			for (std::map<int, int>::const_iterator iter(eligible_deadlines.begin()); iter != eligible_deadlines.end(); ++iter) {
+				// ensure job is not scheduled to run on an active processor already.
+				bool job_scheduled = false;
+				for (int p = 0; p < active_processor_scheduled_jobs.size(); ++p) {
+					if (active_processor_scheduled_jobs[p].task_id == task_detail.task_id && active_processor_scheduled_jobs[p].job_id == iter->first) {
+						job_scheduled = true;
+						break;
+					}
+				}
+				if (job_scheduled) continue;
+
+				// passive processors determine eligible job based on laxity:
+				const SJob& job_ref = task_detail.jobs.at(iter->first);
+				int laxity = task_ref->get_job_laxity(iter->first, step);
+				for (int p = 0; p < assignments[i].passive_virtual_processor_refs.size(); ++p) {
+					int processor_id = assignments[i].passive_virtual_processor_refs[p]->processor_id;
+					if (active_processor_scheduled_jobs[processor_id].task_id != -1) continue; // active processor is not idle, do not use passive processor
+					if (laxity < passive_processor_scheduled_jobs[processor_id].laxity) {
+						passive_processor_scheduled_jobs[processor_id].task_id = task_detail.task_id;
+						passive_processor_scheduled_jobs[processor_id].job_id = job_ref.job_id;
+						passive_processor_scheduled_jobs[processor_id].laxity = laxity;
+					}
+				}
+			}
 		}
 		
+
 		// for each processor, update job progress
-		
+		for (int p = 0; p < active_processor_scheduled_jobs.size(); ++p) {
+			int task_id_active = active_processor_scheduled_jobs[p].task_id;
+			int job_id_active = active_processor_scheduled_jobs[p].job_id;
+
+			int task_id_passive = passive_processor_scheduled_jobs[p].task_id;
+			int job_id_passive = passive_processor_scheduled_jobs[p].job_id;
+			if (task_id_active != -1) 
+			{
+				scheduler.update_job_progress(task_id_active, job_id_active, p, true, time_unit);
+			}
+			else if (task_id_passive != -1)
+			{
+				scheduler.update_job_progress(task_id_passive, job_id_passive, p, false, time_unit);
+			}
+		}
+
+
 	}
 
 }

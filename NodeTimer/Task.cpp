@@ -137,6 +137,11 @@ std::vector<const SJob* > Task::get_longest_path(int end_at_job_id, int& longest
 	return longest_path;
 }
 
+int Task::get_job_laxity(int job_id, int current_time_step) const {
+	int absolute_deadline = this->eligible_job_refs.at(job_id);
+	const SJob& job_ref = this->task.jobs.at(job_id);
+	return (absolute_deadline - current_time_step) - (job_ref.execution_time - job_ref.progress);
+}
 
 int Task::get_total_execution_time() const {
 	int total_execution_timer = 0;

@@ -56,6 +56,8 @@ public:
 
 	int get_total_execution_time() const;
 
+	int get_job_laxity(int job_id, int current_time_step) const;
+
 	void update_job_progress(int job_id, int time_units);
 
 	void renew_period(int current_time_step);

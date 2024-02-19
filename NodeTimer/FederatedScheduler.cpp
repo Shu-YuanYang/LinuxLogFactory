@@ -39,6 +39,10 @@ const std::vector<Task>& FederatedScheduler::get_tasks() const {
 	return this->tasks;
 }
 
+int FederatedScheduler::get_processor_count() const {
+	return this->__max_processor_id__;
+}
+
 int FederatedScheduler::compute_processor_demand(const Task& task) const {
 	
 	int longest_execution_time;
@@ -319,3 +323,22 @@ std::vector<ProcessorAssignment> FederatedScheduler::get_processor_assignments()
 
 }
 
+
+
+void FederatedScheduler::renew_period(int task_id, int current_time_step) {
+	Task& task_ref = this->tasks[task_id];
+	//const STask& task_detail = task_ref.task_detail();
+	//if (current_time_step - task_detail.release_time == task_detail.period) {
+	task_ref.renew_period(current_time_step);
+	const std::vector<int>& active_processor_ids = this->active_virtual_processor_refs.at(task_id);
+	for (std::vector<int>::const_iterator iter(active_processor_ids.begin()); iter != active_processor_ids.end(); ++iter) {
+		this->__active_virtual_processors__[*iter].__used_budget__ = 0;
+	}
+	//}
+}
+
+void FederatedScheduler::update_job_progress(int task_id, int job_id, int processor_id, bool is_active_processor, int time_units) {
+	this->tasks[task_id].update_job_progress(job_id, time_units);
+	if (is_active_processor) this->__active_virtual_processors__[processor_id].__used_budget__ += time_units;
+	//else this->__passive_virtual_processors__[processor_id].__used_budget__;
+}

@@ -8,6 +8,7 @@ struct VirtualProcessor {
 public:
 	int processor_id;
 	int budget;
+	int __used_budget__;
 };
 
 struct ActiveVirtualProcessor : public VirtualProcessor {
@@ -44,6 +45,8 @@ public:
 
 	std::vector<ProcessorAssignment> get_processor_assignments();
 
+	int get_processor_count() const;
+
 	int compute_processor_demand(const Task& task) const;
 
 	bool is_schedulable_on_active_processors(const Task& task) const;
@@ -61,6 +64,10 @@ public:
 	void schedule_task_set(bool& schedulable);
 
 	void reset(int processor_count);
+
+	void renew_period(int task_id, int current_time_step);
+
+	void update_job_progress(int task_id, int job_id, int processor_id, bool is_active_processor, int time_units);
 
 private:
 
