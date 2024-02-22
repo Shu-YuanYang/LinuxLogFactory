@@ -12,7 +12,7 @@ int main()
 {
 	//std::cout << (-18 % 7) << std::endl;
 
-	FederatedSchedulingUnitTestManual();
+	//FederatedSchedulingUnitTestManual();
 	/*
 	std::string TasksStr = std::read_file("TaskSetTest20240216.json");
 	nlohmann::json TaskDoc = nlohmann::json::parse(TasksStr);
@@ -39,6 +39,7 @@ int main()
 		std::cout << std::endl;
 	}
 	*/
+	FederatedSchedulingTestWithFileInput("TaskSetTest20240216.json", 3);
 
 
 	/*

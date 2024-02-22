@@ -94,7 +94,7 @@ void RunScheduleSimulation(FederatedScheduler& scheduler) {
 	for (int i = 0; i < assignments.size(); ++i) hyper_period = lcm(assignments[i].task_ref->task_detail().period, hyper_period);
 
 	// Run timeline:
-	for (int step = 0; step < hyper_period; hyper_period += time_unit) {
+	for (int step = 0; step < hyper_period; step += time_unit) {
 
 		std::vector<TaskJobIndex> active_processor_scheduled_jobs(scheduler.get_processor_count(), TaskJobIndex{ -1, -1, INT32_MAX });
 		std::vector<TaskJobIndex> passive_processor_scheduled_jobs(scheduler.get_processor_count(), TaskJobIndex{ -1, -1, INT32_MAX });
@@ -120,6 +120,17 @@ void RunScheduleSimulation(FederatedScheduler& scheduler) {
 			// determine eligible jobs for active processors (LLF): 
 			eligible_deadlines = task_ref->get_eligible_absolute_deadlines();
 			for (std::map<int, int>::const_iterator iter(eligible_deadlines.begin()); iter != eligible_deadlines.end(); ++iter) {
+				// ensure job is not scheduled to run on a processor already.
+				bool job_scheduled = false;
+				for (int p = 0; p < active_processor_scheduled_jobs.size(); ++p) {
+					if (active_processor_scheduled_jobs[p].task_id == task_detail.task_id && active_processor_scheduled_jobs[p].job_id == iter->first) {
+						job_scheduled = true;
+						break;
+					}
+				}
+				if (job_scheduled) continue;
+
+
 				const SJob& job_ref = task_detail.jobs.at(iter->first);
 				int laxity = task_ref->get_job_laxity(iter->first, step);
 				for (int p = 0; p < assignments[i].active_virtual_processor_refs.size(); ++p) {
@@ -129,6 +140,7 @@ void RunScheduleSimulation(FederatedScheduler& scheduler) {
 						active_processor_scheduled_jobs[processor_id].task_id = task_detail.task_id;
 						active_processor_scheduled_jobs[processor_id].job_id = job_ref.job_id;
 						active_processor_scheduled_jobs[processor_id].laxity = laxity;
+						break; // move on to the next job if schedules.
 					}
 				}
 			}
@@ -143,10 +155,17 @@ void RunScheduleSimulation(FederatedScheduler& scheduler) {
 			
 			std::map<int, int> eligible_deadlines = task_ref->get_eligible_absolute_deadlines();
 			for (std::map<int, int>::const_iterator iter(eligible_deadlines.begin()); iter != eligible_deadlines.end(); ++iter) {
-				// ensure job is not scheduled to run on an active processor already.
+				// ensure job is not scheduled to run on a processor already.
 				bool job_scheduled = false;
 				for (int p = 0; p < active_processor_scheduled_jobs.size(); ++p) {
 					if (active_processor_scheduled_jobs[p].task_id == task_detail.task_id && active_processor_scheduled_jobs[p].job_id == iter->first) {
+						job_scheduled = true;
+						break;
+					}
+				}
+				if (job_scheduled) continue;
+				for (int p = 0; p < passive_processor_scheduled_jobs.size(); ++p) {
+					if (passive_processor_scheduled_jobs[p].task_id == task_detail.task_id && passive_processor_scheduled_jobs[p].job_id == iter->first) {
 						job_scheduled = true;
 						break;
 					}
@@ -163,6 +182,7 @@ void RunScheduleSimulation(FederatedScheduler& scheduler) {
 						passive_processor_scheduled_jobs[processor_id].task_id = task_detail.task_id;
 						passive_processor_scheduled_jobs[processor_id].job_id = job_ref.job_id;
 						passive_processor_scheduled_jobs[processor_id].laxity = laxity;
+						break; // move on to the next job if schedules.
 					}
 				}
 			}
@@ -170,22 +190,30 @@ void RunScheduleSimulation(FederatedScheduler& scheduler) {
 		
 
 		// for each processor, update job progress
+		std::cout << std::to_string(step) << " -> ";
 		for (int p = 0; p < active_processor_scheduled_jobs.size(); ++p) {
 			int task_id_active = active_processor_scheduled_jobs[p].task_id;
 			int job_id_active = active_processor_scheduled_jobs[p].job_id;
 
 			int task_id_passive = passive_processor_scheduled_jobs[p].task_id;
 			int job_id_passive = passive_processor_scheduled_jobs[p].job_id;
+			
+			
 			if (task_id_active != -1) 
 			{
 				scheduler.update_job_progress(task_id_active, job_id_active, p, true, time_unit);
+				std::cout << "a" << std::to_string(p) << ": " << "{t:" << task_id_active << ",j:" << job_id_active << "} ";
 			}
 			else if (task_id_passive != -1)
 			{
 				scheduler.update_job_progress(task_id_passive, job_id_passive, p, false, time_unit);
+				std::cout << "p" << std::to_string(p) << ": " "{t:" << task_id_passive << ",j:" << job_id_passive << "} ";
+			}
+			else {
+				std::cout << "n" << std::to_string(p) << ": {t:n,j:n} ";
 			}
 		}
-
+		std::cout << std::endl;
 
 	}
 
@@ -203,6 +231,8 @@ void FederatedSchedulingTestWithFileInput(const char* filename, int processor_co
 	bool schedulable;
 	fscheduler.schedule_task_set(schedulable);
 	std::cout << "Task set schedulability: " << schedulable << std::endl;
+
+	RunScheduleSimulation(fscheduler);
 	/*
 	std::cout << "Processor assignments:" << std::endl;
 	std::vector<ProcessorAssignment> processor_assignments(fscheduler.get_processor_assignments());
