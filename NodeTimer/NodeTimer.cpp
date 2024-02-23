@@ -8,7 +8,7 @@
 #include "FileLock.h"
 
 
-int main()
+int main(int argc, const char* argv[])
 {
 	//std::cout << (-18 % 7) << std::endl;
 
@@ -39,8 +39,13 @@ int main()
 		std::cout << std::endl;
 	}
 	*/
-	FederatedSchedulingTestWithFileInput("TaskSetTest20240223.json", 6);
 
+	if (argc < 3) {
+		std::cout << "Program must run with arguments ./NodeTimer {file_name} {processor_count}" << std::endl;
+		return -1;
+	};
+	//FederatedSchedulingTestWithFileInput("TaskSetTest20240223.json", 6);
+	FederatedSchedulingTestWithFileInput(argv[1], atoi(argv[2]));
 
 	/*
 	STasks tasks{
