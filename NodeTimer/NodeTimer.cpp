@@ -39,7 +39,7 @@ int main()
 		std::cout << std::endl;
 	}
 	*/
-	FederatedSchedulingTestWithFileInput("TaskSetTest20240216.json", 3);
+	FederatedSchedulingTestWithFileInput("TaskSetTest20240223.json", 6);
 
 
 	/*

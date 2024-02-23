@@ -51,6 +51,7 @@ int FederatedScheduler::compute_processor_demand(const Task& task) const {
 	int deadline = task.task_detail().deadline;
 
 	int processor_demand = std::ceil( double(total_execution_time - longest_execution_time) / double(deadline - longest_execution_time) );
+	if (processor_demand == 0 && 0 < longest_execution_time) processor_demand = 1; // Shu-Yuan Yang ammended in case there is only one path in the graph
 	return processor_demand;
 }
 
@@ -222,24 +223,26 @@ bool FederatedScheduler::is_useful_passive_processor(int passive_virtual_process
 // Based on the resource allocation algorithm, Page 491
 void FederatedScheduler::schedule_task_set(bool& schedulable) {
 	// 1. Sort tasks by D - L in ascending order:
-	std::sort(this->tasks.begin(), this->tasks.end(), [](const Task& lhs, const Task& rhs) -> bool { 
+	std::vector<Task* > __ordered_tasks(this->tasks.size());
+	for (int i = 0; i < this->tasks.size(); ++i) __ordered_tasks[i] = &(this->tasks[i]);
+	std::sort(__ordered_tasks.begin(), __ordered_tasks.end(), [](const Task* lhs, const Task* rhs) -> bool {
 		int lhs_longest_execution_time, rhs_longest_execution_time;
-		lhs.get_longest_path(lhs_longest_execution_time);
-		rhs.get_longest_path(rhs_longest_execution_time);
-		int lhs_gap = lhs.task_detail().deadline - lhs_longest_execution_time;
-		int rhs_gap = rhs.task_detail().deadline - rhs_longest_execution_time;
+		lhs->get_longest_path(lhs_longest_execution_time);
+		rhs->get_longest_path(rhs_longest_execution_time);
+		int lhs_gap = lhs->task_detail().deadline - lhs_longest_execution_time;
+		int rhs_gap = rhs->task_detail().deadline - rhs_longest_execution_time;
 		return lhs_gap < rhs_gap;
 	});
 
 
 	schedulable = false;
-	for (int i = 0; i < this->tasks.size(); ++i) {
-		int processor_demand = this->compute_processor_demand(this->tasks[i]);
+	for (int i = 0; i < __ordered_tasks.size(); ++i) {
+		int processor_demand = this->compute_processor_demand(*(__ordered_tasks[i]));
 		
-		const STask& task_detail = this->tasks[i].task_detail();
+		const STask& task_detail = __ordered_tasks[i]->task_detail();
 		int longest_execution_time;
-		this->tasks[i].get_longest_path(longest_execution_time);
-		int total_execution_time = this->tasks[i].get_total_execution_time();
+		__ordered_tasks[i]->get_longest_path(longest_execution_time);
+		int total_execution_time = __ordered_tasks[i]->get_total_execution_time();
 
 
 		// all jobs on active processors:
@@ -249,7 +252,8 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 			if (1 < active_processors.size()) { 
 				int execution_excess = total_execution_time - task_detail.deadline;
 				int gap = task_detail.deadline - longest_execution_time;
-				active_processors.back().budget = (execution_excess - int(std::floor(execution_excess / gap)) * gap);
+				int remainder = execution_excess % gap;
+				if (remainder != 0) active_processors.back().budget = remainder; //(execution_excess - int(std::floor(double(execution_excess) / double(gap))) * gap);
 			}
 			this->add_active_processors(active_processors);
 		}
@@ -263,10 +267,10 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 			//std::vector<int> active_processor_ids(active_processor_refs.size()); 
 			//for (int j = 0; j < active_processor_refs.size(); ++j) active_processor_ids[j] = active_processor_refs[i]->processor_id;
 			std::vector<int> passive_processor_ids;
-			while (!this->is_schedulable_on_mixed_processors(this->tasks[i], active_processor_refs, passive_processor_ids)) {
+			while (!this->is_schedulable_on_mixed_processors(*(__ordered_tasks[i]), active_processor_refs, passive_processor_ids)) {
 				std::vector<int>& unused_passive_processor_refs = this->passive_virtual_processor_refs.at(-1);
 				std::vector<int>::iterator iter = unused_passive_processor_refs.begin();
-				while (iter != unused_passive_processor_refs.end() && !this->is_useful_passive_processor(*iter, this->tasks[i])) ++iter;
+				while (iter != unused_passive_processor_refs.end() && !this->is_useful_passive_processor(*iter, *(__ordered_tasks[i]))) ++iter;
 				if (iter == unused_passive_processor_refs.end()) return;
 
 				passive_processor_ids.push_back(*iter);
@@ -279,10 +283,10 @@ void FederatedScheduler::schedule_task_set(bool& schedulable) {
 		// all jobs on passive processors:
 		else {
 			std::vector<int> passive_processor_ids;
-			while (!this->is_schedulable_on_passive_processors(this->tasks[i], passive_processor_ids)) {
+			while (!this->is_schedulable_on_passive_processors(*(__ordered_tasks[i]), passive_processor_ids)) {
 				std::vector<int>& unused_passive_processor_refs = this->passive_virtual_processor_refs.at(-1);
 				std::vector<int>::iterator iter = unused_passive_processor_refs.begin();
-				while (iter != unused_passive_processor_refs.end() && !this->is_useful_passive_processor(*iter, this->tasks[i])) ++iter;
+				while (iter != unused_passive_processor_refs.end() && !this->is_useful_passive_processor(*iter, *(__ordered_tasks[i]))) ++iter;
 				if (iter == unused_passive_processor_refs.end()) return;
 
 				passive_processor_ids.push_back(*iter);
@@ -330,7 +334,10 @@ void FederatedScheduler::renew_period(int task_id, int current_time_step) {
 	//const STask& task_detail = task_ref.task_detail();
 	//if (current_time_step - task_detail.release_time == task_detail.period) {
 	task_ref.renew_period(current_time_step);
-	const std::vector<int>& active_processor_ids = this->active_virtual_processor_refs.at(task_id);
+	std::map<int, std::vector<int> >::iterator virtual_processor_refs_iter(this->active_virtual_processor_refs.find(task_id));
+	if (virtual_processor_refs_iter == this->active_virtual_processor_refs.end()) return;
+
+	const std::vector<int>& active_processor_ids = virtual_processor_refs_iter->second;
 	for (std::vector<int>::const_iterator iter(active_processor_ids.begin()); iter != active_processor_ids.end(); ++iter) {
 		this->__active_virtual_processors__[*iter].__used_budget__ = 0;
 	}

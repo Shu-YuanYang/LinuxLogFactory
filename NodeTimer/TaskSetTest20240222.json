@@ -1,0 +1,163 @@
+{
+    "tasks": [
+        {
+            "deadline": 1200,
+            "jobs": [
+                {
+                    "execution_time": 300,
+                    "job_id": 1,
+                    "next_jobs": [2, 3, 4],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 200,
+                    "job_id": 2,
+                    "next_jobs": [5],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 200,
+                    "job_id": 3,
+                    "next_jobs": [6],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 200,
+                    "job_id": 4,
+                    "next_jobs": [7],
+                    "previous_jobs": []
+                },
+		{
+                    "execution_time": 100,
+                    "job_id": 5,
+                    "next_jobs": [8],
+                    "previous_jobs": []
+                },
+		{
+                    "execution_time": 200,
+                    "job_id": 6,
+                    "next_jobs": [8],
+                    "previous_jobs": []
+                },
+		{
+                    "execution_time": 300,
+                    "job_id": 7,
+                    "next_jobs": [8],
+                    "previous_jobs": []
+                },
+		{
+                    "execution_time": 100,
+                    "job_id": 8,
+                    "next_jobs": [],
+                    "previous_jobs": []
+                }
+            ],
+            "period": 1600,
+            "priority": 1,
+            "release_time": 0,
+            "task_id": -1
+        },
+        {
+            "deadline": 900,
+            "jobs": [
+                {
+                    "execution_time": 100,
+                    "job_id": 1,
+                    "next_jobs": [2],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 200,
+                    "job_id": 2,
+                    "next_jobs": [3, 4, 5],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 200,
+                    "job_id": 3,
+                    "next_jobs": [6],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 300,
+                    "job_id": 4,
+                    "next_jobs": [6],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 100,
+                    "job_id": 5,
+                    "next_jobs": [6],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 200,
+                    "job_id": 6,
+                    "next_jobs": [],
+                    "previous_jobs": []
+                }
+            ],
+            "period": 1600,
+            "priority": 2,
+            "release_time": 0,
+            "task_id": -1
+        },
+        {
+            "deadline": 1400,
+            "jobs": [
+                {
+                    "execution_time": 400,
+                    "job_id": 1,
+                    "next_jobs": [2, 3, 4, 5],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 300,
+                    "job_id": 2,
+                    "next_jobs": [6],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 300,
+                    "job_id": 3,
+                    "next_jobs": [8],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 300,
+                    "job_id": 4,
+                    "next_jobs": [8],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 300,
+                    "job_id": 5,
+                    "next_jobs": [8],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 100,
+                    "job_id": 6,
+                    "next_jobs": [7],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 100,
+                    "job_id": 7,
+                    "next_jobs": [8],
+                    "previous_jobs": []
+                },
+                {
+                    "execution_time": 100,
+                    "job_id": 8,
+                    "next_jobs": [],
+                    "previous_jobs": []
+                }
+            ],
+            "period": 1600,
+            "priority": 3,
+            "release_time": 0,
+            "task_id": -1
+        }
+    ]
+}
