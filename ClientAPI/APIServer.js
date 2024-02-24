@@ -38,7 +38,7 @@ app.get("/federated_scheduling_test", function(req, res){
 
 	var execution_str = `../NodeTimer/NodeTimer "../NodeTimer/${task_set_ID}.json" ${processor_count}`;
 
-	exec('../NodeTimer/NodeTimer "../NodeTimer/TaskSetTest20240223.json" 6', (error, stdout, stderr) => {
+	exec(execution_str, (error, stdout, stderr) => {
 		console.log(stdout);
 		if (error) {
 			console.log(error);
