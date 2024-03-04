@@ -85,29 +85,42 @@ public:
 	int laxity;
 };
 
-void AddSimulationCSVStrings(int current_time_step, int task_id, int job_id, bool is_active_processor, std::string& active_processor_result_str, std::string& passive_processor_result_str, std::string& processor_result_str) {
-	if (task_id == -1) {
+enum ProcessorType {
+	NONE, ACTIVE, PASSIVE, UNCOMMITTED
+};
+
+void AddSimulationCSVStrings(int current_time_step, int task_id, int job_id, ProcessorType processor_type, std::string& active_processor_result_str, std::string& passive_processor_result_str, std::string& uncommitted_processor_result_str, std::string& processor_result_str) {
+	if (task_id == -1 || processor_type == NONE) {
 		active_processor_result_str += ',';
 		passive_processor_result_str += ',';
+		uncommitted_processor_result_str += ',';
 		processor_result_str += ',';
 		return;
 	}
 
 	std::string job_str("T" + std::to_string(task_id) + std::to_string(job_id) + ",");
-	if (is_active_processor) {
+	if (processor_type == ACTIVE) {
 		active_processor_result_str += job_str;
 		passive_processor_result_str += ',';
+		uncommitted_processor_result_str += ',';
 		processor_result_str += job_str;
-		return;
 	}
-
-	active_processor_result_str += ',';
-	passive_processor_result_str += job_str;
-	processor_result_str += job_str;
+	else if (processor_type == PASSIVE) {
+		active_processor_result_str += ',';
+		passive_processor_result_str += job_str;
+		uncommitted_processor_result_str += ',';
+		processor_result_str += job_str;
+	}
+	else { // uncommitted schedule
+		active_processor_result_str += ',';
+		passive_processor_result_str += ',';
+		uncommitted_processor_result_str += job_str;
+		processor_result_str += job_str;
+	}
 
 }
 
-void exportSimulationResultToCSV(const char* filename, const std::vector<std::string>& active_processor_results, const std::vector<std::string>& passive_processor_results, const std::vector<std::string>& processor_results, int hyper_period, int time_unit) {
+void exportSimulationResultToCSV(const char* filename, const std::vector<std::string>& active_processor_results, const std::vector<std::string>& passive_processor_results, const std::vector<std::string>& uncommitted_processor_results, const std::vector<std::string>& processor_results, int hyper_period, int time_unit) {
 	std::string result_str;
 
 	result_str += "Processors:\n";
@@ -132,6 +145,13 @@ void exportSimulationResultToCSV(const char* filename, const std::vector<std::st
 	result_str += '\n';
 	for (int p = 0; p < passive_processor_results.size(); ++p) result_str += ("P" + std::to_string(p) + "," + passive_processor_results[p] + "\n");
 
+	result_str += '\n';
+
+	result_str += "Uncommitted Schedule:\n";
+	for (int t = 0; t < hyper_period; t += time_unit) result_str += (std::to_string(t) + ',');
+	result_str += '\n';
+	for (int p = 0; p < uncommitted_processor_results.size(); ++p) result_str += ("P" + std::to_string(p) + "," + uncommitted_processor_results[p] + "\n");
+
 	std::string new_filename(filename);
 	size_t lastindex = new_filename.find_last_of(".");
 	new_filename = new_filename.substr(0, lastindex);
@@ -139,6 +159,7 @@ void exportSimulationResultToCSV(const char* filename, const std::vector<std::st
 	std::write_file(new_filename.c_str(), result_str);
 
 }
+
 
 void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& scheduler) {
 
@@ -148,14 +169,19 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 	int hyper_period = 1;
 	for (int i = 0; i < assignments.size(); ++i) hyper_period = lcm(assignments[i].task_ref->task_detail().period, hyper_period);
 
+	int processor_count = scheduler.get_processor_count();
+
 	// Run timeline:
-	std::vector<std::string> active_processor_result_strs(scheduler.get_processor_count());
-	std::vector<std::string> passive_processor_result_strs(scheduler.get_processor_count());
-	std::vector<std::string> processor_result_strs(scheduler.get_processor_count());
+	std::vector<std::string> active_processor_result_strs(processor_count);
+	std::vector<std::string> passive_processor_result_strs(processor_count);
+	std::vector<std::string> uncommitted_result_strs(processor_count);
+	std::vector<std::string> processor_result_strs(processor_count);
 	for (int step = 0; step < hyper_period; step += time_unit) {
 
-		std::vector<TaskJobIndex> active_processor_scheduled_jobs(scheduler.get_processor_count(), TaskJobIndex{ -1, -1, INT32_MAX });
-		std::vector<TaskJobIndex> passive_processor_scheduled_jobs(scheduler.get_processor_count(), TaskJobIndex{ -1, -1, INT32_MAX });
+		std::vector<TaskJobIndex> active_processor_scheduled_jobs(processor_count, TaskJobIndex{ -1, -1, INT32_MAX });
+		std::vector<TaskJobIndex> passive_processor_scheduled_jobs(processor_count, TaskJobIndex{ -1, -1, INT32_MAX });
+		std::vector<TaskJobIndex> uncommitted_scheduled_jobs(processor_count, TaskJobIndex{ -1, -1, INT32_MAX });
+
 
 		// Period update and active processor resource allocation:
 		for (int i = 0; i < assignments.size(); ++i) {
@@ -198,7 +224,7 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 						active_processor_scheduled_jobs[processor_id].task_id = task_detail.task_id;
 						active_processor_scheduled_jobs[processor_id].job_id = job_ref.job_id;
 						active_processor_scheduled_jobs[processor_id].laxity = laxity;
-						break; // move on to the next job if schedules.
+						break; // move on to the next job if scheduled.
 					}
 				}
 			}
@@ -245,6 +271,45 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 				}
 			}
 		}
+
+
+		// Uncommitted jobs resource allocation:
+		for (int i = 0; i < assignments.size(); ++i) {
+			if (!assignments[i].is_uncommitted) continue;
+
+			Task* task_ref = assignments[i].task_ref;
+			const STask& task_detail = task_ref->task_detail();
+			// determine eligible jobs for passive processors (LLF):
+			std::map<int, int> eligible_deadlines = task_ref->get_eligible_absolute_deadlines();
+			for (std::map<int, int>::const_iterator iter(eligible_deadlines.begin()); iter != eligible_deadlines.end(); ++iter) {
+				// ensure job is not already scheduled to run on a processor already
+				bool job_scheduled = false;
+				for (int p = 0; p < uncommitted_scheduled_jobs.size(); ++p) {
+					if (uncommitted_scheduled_jobs[p].task_id == task_detail.task_id && uncommitted_scheduled_jobs[p].job_id == iter->first) {
+						job_scheduled = true;
+						break;
+					}
+				}
+				if (job_scheduled) continue;
+
+				// all processors determine eligible job based on laxity:
+				const SJob& job_ref = task_detail.jobs.at(iter->first);
+				int laxity = task_ref->get_job_laxity(iter->first, step);
+				for (int p = 0; p < processor_count; ++p) {
+					int processor_id = p;
+					if (active_processor_scheduled_jobs[processor_id].task_id != -1) continue; // active processor is not idle, do not use passive processor
+					if (passive_processor_scheduled_jobs[processor_id].task_id != -1) continue; // passive processor is not idle, do not use uncommitted schedule
+					if (laxity < uncommitted_scheduled_jobs[processor_id].laxity) {
+						uncommitted_scheduled_jobs[processor_id].task_id = task_detail.task_id;
+						uncommitted_scheduled_jobs[processor_id].job_id = job_ref.job_id;
+						uncommitted_scheduled_jobs[processor_id].laxity = laxity;
+						break; // move on to the next job if schedules.
+					}
+				}
+			}
+			
+		}
+		
 		
 
 		// for each processor, update job progress
@@ -256,27 +321,36 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 			int task_id_passive = passive_processor_scheduled_jobs[p].task_id;
 			int job_id_passive = passive_processor_scheduled_jobs[p].job_id;
 			
+			int task_id_uncommitted = uncommitted_scheduled_jobs[p].task_id;
+			int job_id_uncommitted = uncommitted_scheduled_jobs[p].job_id;
+
 			if (task_id_active != -1) 
 			{
 				scheduler.update_job_progress(task_id_active, job_id_active, p, true, time_unit);
-				AddSimulationCSVStrings(step, task_id_active, job_id_active, true, active_processor_result_strs[p], passive_processor_result_strs[p], processor_result_strs[p]);
+				AddSimulationCSVStrings(step, task_id_active, job_id_active, ACTIVE, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
 				std::cout << "a" << std::to_string(p) << ": " << "{t:" << task_id_active << ",j:" << job_id_active << "} ";
 			}
 			else if (task_id_passive != -1)
 			{
 				scheduler.update_job_progress(task_id_passive, job_id_passive, p, false, time_unit);
-				AddSimulationCSVStrings(step, task_id_passive, job_id_passive, false, active_processor_result_strs[p], passive_processor_result_strs[p], processor_result_strs[p]);
-				std::cout << "p" << std::to_string(p) << ": " "{t:" << task_id_passive << ",j:" << job_id_passive << "} ";
+				AddSimulationCSVStrings(step, task_id_passive, job_id_passive, PASSIVE, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
+				std::cout << "p" << std::to_string(p) << ": " << "{t:" << task_id_passive << ",j:" << job_id_passive << "} ";
+			}
+			else if (task_id_uncommitted != -1) 
+			{
+				scheduler.update_job_progress(task_id_uncommitted, job_id_uncommitted, p, false, time_unit);
+				AddSimulationCSVStrings(step, task_id_uncommitted, job_id_uncommitted, UNCOMMITTED, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
+				std::cout << "u" << std::to_string(p) << ": " << "{t:" << task_id_uncommitted << ",j:" << job_id_uncommitted << "} ";
 			}
 			else {
-				AddSimulationCSVStrings(step, -1, -1, false, active_processor_result_strs[p], passive_processor_result_strs[p], processor_result_strs[p]);
-				std::cout << "n" << std::to_string(p) << ": {t:n,j:n} ";
+				AddSimulationCSVStrings(step, -1, -1, NONE, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
+				std::cout << "_" << std::to_string(p) << ": {t:_,j:_} ";
 			}
 		}
 		std::cout << std::endl;
 	}
 
-	exportSimulationResultToCSV(simulation_name, active_processor_result_strs, passive_processor_result_strs, processor_result_strs, hyper_period, time_unit);
+	exportSimulationResultToCSV(simulation_name, active_processor_result_strs, passive_processor_result_strs, uncommitted_result_strs, processor_result_strs, hyper_period, time_unit);
 
 
 }
@@ -295,10 +369,11 @@ void FederatedSchedulingTestWithFileInput(const char* filename, int processor_co
 	FederatedScheduler fscheduler(processor_count);
 	for (int t = 0; t < tasks.tasks.size(); ++t) fscheduler.add_task(tasks.tasks[t]);
 	bool schedulable;
-	fscheduler.schedule_task_set(schedulable);
+	//fscheduler.schedule_task_set(schedulable);
+	fscheduler.schedule_task_set_uncommitted(schedulable);
 	std::cout << "Task set schedulability: " << schedulable << std::endl;
 
-	if (schedulable) RunScheduleSimulation(filename, fscheduler);
+	/*if (schedulable)*/ RunScheduleSimulation(filename, fscheduler);
 	/*
 	std::cout << "Processor assignments:" << std::endl;
 	std::vector<ProcessorAssignment> processor_assignments(fscheduler.get_processor_assignments());

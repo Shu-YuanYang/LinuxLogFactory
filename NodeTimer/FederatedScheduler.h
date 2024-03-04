@@ -2,6 +2,7 @@
 
 
 #include "Task.h"
+#include <set>
 
 
 struct VirtualProcessor {
@@ -24,6 +25,7 @@ public:
 	Task* task_ref = nullptr;
 	std::vector<const ActiveVirtualProcessor* > active_virtual_processor_refs;
 	std::vector<const VirtualProcessor* > passive_virtual_processor_refs;
+	bool is_uncommitted;
 };
 
 
@@ -63,6 +65,8 @@ public:
 
 	void schedule_task_set(bool& schedulable);
 
+	void schedule_task_set_uncommitted(bool& schedulable);
+
 	void reset(int processor_count);
 
 	void renew_period(int task_id, int current_time_step);
@@ -76,9 +80,11 @@ private:
 	std::vector<Task> tasks;
 	std::map<int, std::vector<int> > active_virtual_processor_refs;
 	std::map<int, std::vector<int> > passive_virtual_processor_refs;
+	std::set<int> uncommitted_refs;
 	std::vector<ActiveVirtualProcessor> __active_virtual_processors__;
 	std::vector<VirtualProcessor> __passive_virtual_processors__;
 	
+	void remove_last_active_processors(int size);
 
 	/*
 	int supply_bound_alpha_function(const ActiveVirtualProcessor& active_virtual_processor, const Task& task, int interval) const;
