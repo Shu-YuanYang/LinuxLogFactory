@@ -31,4 +31,8 @@ namespace std {
 		return str;
 	}
 
+	/*void remove_file(const char* filename) {
+		std::remove(filename);
+	}*/
+
 }

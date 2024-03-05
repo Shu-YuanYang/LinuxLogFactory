@@ -6,7 +6,7 @@
 
 void FederatedSchedulingUnitTestManual() 
 {
-	std::string TasksStr = std::read_file("TaskSetTest20240216.json");
+	std::string TasksStr = std::read_file("task_files/TaskSetTest20240216.json");
 	//std::cout << TasksStr << std::endl;
 	nlohmann::json TaskDoc = nlohmann::json::parse(TasksStr);
 	STasks tasks{ TaskDoc.template get<STasks>() };
@@ -160,6 +160,13 @@ void exportSimulationResultToCSV(const char* filename, const std::vector<std::st
 
 }
 
+void clear_output_file(const char* filename) {
+	std::string new_filename(filename);
+	size_t lastindex = new_filename.find_last_of(".");
+	new_filename = new_filename.substr(0, lastindex);
+	new_filename += ".csv";
+	std::remove(new_filename.c_str());
+}
 
 void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& scheduler) {
 
@@ -365,6 +372,8 @@ void FederatedSchedulingTestWithFileInput(const char* filename, int processor_co
 	std::string TasksStr = std::read_file(filename);
 	nlohmann::json TaskDoc = nlohmann::json::parse(TasksStr);
 	STasks tasks{ TaskDoc.template get<STasks>() };
+	clear_output_file(filename);
+
 
 	FederatedScheduler fscheduler(processor_count);
 	for (int t = 0; t < tasks.tasks.size(); ++t) fscheduler.add_task(tasks.tasks[t]);
