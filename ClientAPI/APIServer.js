@@ -36,7 +36,7 @@ app.get("/federated_scheduling_test", function(req, res){
 		return;
 	}
 
-	var execution_str = `../NodeTimer/NodeTimer "../NodeTimer/${task_set_ID}.json" ${processor_count}`;
+	var execution_str = `../NodeTimer/NodeTimer "../NodeTimer/task_files/${task_set_ID}.json" ${processor_count}`;
 
 	exec(execution_str, (error, stdout, stderr) => {
 		console.log(stdout);
