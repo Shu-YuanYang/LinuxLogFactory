@@ -88,6 +88,21 @@ function validate_scheduling_test_query(task_set_ID, processor_count) {
 	return { status: "accepted", message: "input validated" };
 }
 
+
+app.get("/get_federated_scheduling_tasksets", function(req, res) {
+
+	task_set_arr = [];
+	const p = path.join(__dirname, `${SCHEDULING_TASK_FILES_FOLDER}`);
+	fs.readdirSync(p).forEach(file => {
+		//console.log(file);
+		const file_extensions = file.split('.');
+		if (file_extensions[1] == "json") task_set_arr.push(file_extensions[0]);
+	});
+
+	res.json({ status: "ok", task_sets: task_set_arr });
+
+});
+
 app.post("/federated_scheduling_test", function(req, res){
 	var task_set_ID = req.query.TaskSetID;
         var processor_count = req.query.ProcessorCount;
