@@ -23,7 +23,7 @@ function zip_files_unsafe(zip_id, file_folder_path, filename_list, on_finish) {
 
 		zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true })
 			.pipe(fs.createWriteStream(`${file_folder_path}/${zip_id}.zip`))
-			.on('finish', function () { console.log(`${zip_id}.zip written.`); on_finish(zip_id); });
+			.on('finish', function () { console.log("sample.zip written."); on_finish(zip_id); });
 	} catch (err) {
 		console.error(err);
 	}
@@ -130,7 +130,6 @@ app.post("/federated_scheduling_download", function(req, res){
 	var filename_list = [];
 	if (req.body.download_task_set) { 
 		filename_list.push(`${task_set_ID}.json`);
-		filename_list.push(`${task_set_ID}.pdf`);
 	}
 	if (req.body.download_schedule) {
 		filename_list.push(`${task_set_ID}.csv`);
