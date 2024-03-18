@@ -1,6 +1,7 @@
 #include "FederatedSchedulingTest.h"
 #include "FederatedScheduler.h"
 #include "FileLock.h"
+#include <iomanip>
 #include <iostream>
 
 
@@ -170,6 +171,9 @@ void clear_output_file(const char* filename) {
 
 void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& scheduler) {
 
+	std::cout << "Simulation output: (where a, p, u stands for active, passive, and unrestricted virtual processor)" << std::endl;
+	std::cout << "time unit -> [(a/p/u)processorID: t(taskID)(jobID), ]" << std::endl;
+
 	std::vector<ProcessorAssignment> assignments(scheduler.get_processor_assignments());
 	
 	int time_unit = 100;
@@ -320,7 +324,7 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 		
 
 		// for each processor, update job progress
-		std::cout << std::to_string(step) << " -> ";
+		std::cout << std::setfill(' ') << std::setw(5) << std::to_string(step) << " -> ";
 		for (int p = 0; p < active_processor_scheduled_jobs.size(); ++p) {
 			int task_id_active = active_processor_scheduled_jobs[p].task_id;
 			int job_id_active = active_processor_scheduled_jobs[p].job_id;
@@ -335,23 +339,23 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 			{
 				scheduler.update_job_progress(task_id_active, job_id_active, p, true, time_unit);
 				AddSimulationCSVStrings(step, task_id_active, job_id_active, ACTIVE, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
-				std::cout << "a" << std::to_string(p) << ": " << "{t:" << task_id_active << ",j:" << job_id_active << "} ";
+				std::cout << "a" << std::to_string(p) << ": " << "t" << task_id_active << job_id_active << ", ";
 			}
 			else if (task_id_passive != -1)
 			{
 				scheduler.update_job_progress(task_id_passive, job_id_passive, p, false, time_unit);
 				AddSimulationCSVStrings(step, task_id_passive, job_id_passive, PASSIVE, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
-				std::cout << "p" << std::to_string(p) << ": " << "{t:" << task_id_passive << ",j:" << job_id_passive << "} ";
+				std::cout << "p" << std::to_string(p) << ": " << "t" << task_id_passive << job_id_passive << ", ";
 			}
 			else if (task_id_uncommitted != -1) 
 			{
 				scheduler.update_job_progress(task_id_uncommitted, job_id_uncommitted, p, false, time_unit);
 				AddSimulationCSVStrings(step, task_id_uncommitted, job_id_uncommitted, UNCOMMITTED, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
-				std::cout << "u" << std::to_string(p) << ": " << "{t:" << task_id_uncommitted << ",j:" << job_id_uncommitted << "} ";
+				std::cout << "u" << std::to_string(p) << ": " << "t" << task_id_uncommitted << job_id_uncommitted << ", ";
 			}
 			else {
 				AddSimulationCSVStrings(step, -1, -1, NONE, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
-				std::cout << "_" << std::to_string(p) << ": {t:_,j:_} ";
+				std::cout << " " << std::to_string(p) << ":    , ";
 			}
 		}
 		std::cout << std::endl;
@@ -380,7 +384,9 @@ void FederatedSchedulingTestWithFileInput(const char* filename, int processor_co
 	bool schedulable;
 	//fscheduler.schedule_task_set(schedulable);
 	fscheduler.schedule_task_set_uncommitted(schedulable);
-	std::cout << "Task set schedulability: " << schedulable << std::endl;
+	std::cout << "Task set schedulabe: ";
+	if (schedulable) std::cout << "true. ";
+	else std::cout << "false. ";
 
 	/*if (schedulable)*/ RunScheduleSimulation(filename, fscheduler);
 	/*
