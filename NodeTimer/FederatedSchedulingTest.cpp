@@ -171,8 +171,8 @@ void clear_output_file(const char* filename) {
 
 void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& scheduler) {
 
-	std::cout << "Simulation output: (where a, p, u stands for active, passive, unrestricted virtual processor, and _ indicates an idle processor)" << std::endl;
-	std::cout << "time unit -> [(a/p/u/-)processorID: t(taskID)(jobID), ]" << std::endl;
+	std::cout << "Simulation output: (where a, p, u stands for active, passive, unrestricted virtual processor, and x indicates an idle processor)" << std::endl;
+	std::cout << "time unit -> [(a/p/u/x)processorID: t(taskID)(jobID), ]" << std::endl;
 
 	std::vector<ProcessorAssignment> assignments(scheduler.get_processor_assignments());
 	
@@ -324,7 +324,7 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 		
 
 		// for each processor, update job progress
-		std::cout << std::setfill('-') << std::setw(5) << std::to_string(step) << " -> ";
+		std::cout << std::setfill('_') << std::setw(5) << std::to_string(step) << " -> ";
 		for (int p = 0; p < active_processor_scheduled_jobs.size(); ++p) {
 			int task_id_active = active_processor_scheduled_jobs[p].task_id;
 			int job_id_active = active_processor_scheduled_jobs[p].job_id;
@@ -355,7 +355,7 @@ void RunScheduleSimulation(const char* simulation_name, FederatedScheduler& sche
 			}
 			else {
 				AddSimulationCSVStrings(step, -1, -1, NONE, active_processor_result_strs[p], passive_processor_result_strs[p], uncommitted_result_strs[p], processor_result_strs[p]);
-				std::cout << "-" << std::to_string(p) << ": ---, ";
+				std::cout << "x" << std::to_string(p) << ": xxx, ";
 			}
 		}
 		std::cout << std::endl;
