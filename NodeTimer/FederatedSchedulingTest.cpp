@@ -149,6 +149,7 @@ void exportSimulationResultToCSV(const char* filename, const std::vector<std::st
 	result_str += '\n';
 
 	result_str += "Uncommitted Schedule:\n";
+	result_str += "Time,";
 	for (int t = 0; t < hyper_period; t += time_unit) result_str += (std::to_string(t) + ',');
 	result_str += '\n';
 	for (int p = 0; p < uncommitted_processor_results.size(); ++p) result_str += ("P" + std::to_string(p) + "," + uncommitted_processor_results[p] + "\n");
